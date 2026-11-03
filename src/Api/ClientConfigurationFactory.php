@@ -18,9 +18,22 @@ final class ClientConfigurationFactory
 {
     private const PLUGIN_PACKAGE = 'alma/sylius-2-payment';
 
+    /**
+     * @param string|null $customApiUrl when set, every call — whatever the configured mode — goes to
+     *                                  this base URL instead of Alma's live or sandbox API. Meant for
+     *                                  development: a local Alma simulator, a tunnel, a staging API.
+     *                                  Bound to the ALMA_API_URL environment variable in services.yaml.
+     */
+    public function __construct(
+        private readonly ?string $customApiUrl = null,
+    ) {
+    }
+
     public function make(string $apiKey, string $mode): ClientConfiguration
     {
-        $environment = new Environment($mode === 'live' ? Environment::LIVE_MODE : Environment::TEST_MODE);
+        $environment = $this->customApiUrl !== null && $this->customApiUrl !== ''
+            ? new Environment(Environment::CUSTOM_MODE, $this->customApiUrl)
+            : new Environment($mode === 'live' ? Environment::LIVE_MODE : Environment::TEST_MODE);
         $configuration = new ClientConfiguration($apiKey, $environment);
         $configuration->addUserAgentComponent('Sylius', SyliusCoreBundle::VERSION);
         $configuration->addUserAgentComponent('Alma for Sylius2', $this->pluginVersion());
