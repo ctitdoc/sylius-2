@@ -1,6 +1,9 @@
 services:
     _defaults:
         autowire: true
+        bind:
+            # Set ALMA_API_URL to point the plugin at a custom Alma API base URL (development only).
+            $customApiUrl: '%env(default::ALMA_API_URL)%'
         autoconfigure: true
         public: false
 
