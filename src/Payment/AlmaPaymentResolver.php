@@ -37,6 +37,8 @@ use Psr\Log\NullLogger;
  * fraud checks (E2, F2) operate on the ResolvedPayment returned here.
  *
  * Every failure mode logs a clear `reason` for operational diagnostics.
+ *
+ * @implements [[sylius-plugin-commons.md#payment-resolution]]
  */
 class AlmaPaymentResolver
 {
