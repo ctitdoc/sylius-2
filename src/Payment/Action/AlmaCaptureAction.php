@@ -36,6 +36,9 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
  * generic flash message and redirects the customer to the order summary page
  * where they can retry the payment (no rollback of the order, no technical
  * detail surfaced).
+ *
+ * @implements [[payment-creation]] — the whole of it: creates the Alma payment and redirects
+ * @implements [[payment-return]] — a second capture of an already created payment redirects again
  */
 final class AlmaCaptureAction implements ActionInterface
 {

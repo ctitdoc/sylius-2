@@ -25,6 +25,8 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
  * Field names on the DTOs are sourced from the Alma PHP client v3
  * (Alma\Client\Application\DTO\*) — the spec describes intent, the client
  * describes the technical contract.
+ *
+ * @implements [[payment-creation]] — the request sent to Alma: amount, plan, addresses, cart, customer, URLs
  */
 class AlmaPaymentRequestBuilder
 {

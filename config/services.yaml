@@ -40,6 +40,7 @@ services:
     # Payum gateway factory builder for the `alma` factory. Without this,
     # Payum's registry doesn't know how to build a gateway with name `alma`
     # and throws "Gateway 'almafr' does not exist." at place-order time.
+    # @implements [[sylius-integration.md#payum-gateway-and-actions]] — the `alma` gateway factory
     alma_sylius.payum.gateway_factory_builder:
         class: Payum\Core\Bridge\Symfony\Builder\GatewayFactoryBuilder
         arguments:
@@ -47,6 +48,7 @@ services:
         tags:
             - { name: payum.gateway_factory_builder, factory: alma }
 
+    # @implements [[payment-creation]] — the capture action Payum runs for the `alma` factory
     Alma\Sylius\Payment\Action\AlmaCaptureAction:
         public: true
         tags:
