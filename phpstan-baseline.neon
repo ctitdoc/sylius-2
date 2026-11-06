@@ -1,34 +1,9 @@
 parameters:
 	ignoreErrors:
 		-
-			message: "#^Cannot cast mixed to int\\.$#"
-			count: 8
-			path: src/Api/FeePlanAdapter.php
-
-		-
-			message: "#^Cannot cast mixed to string\\.$#"
-			count: 1
-			path: src/Api/FeePlanAdapter.php
-
-		-
-			message: "#^Cannot cast mixed to int\\.$#"
-			count: 5
-			path: src/Checkout/FeePlanGrouper.php
-
-		-
 			message: "#^Parameter \\#2 \\$params of method Alma\\\\Sylius\\\\Payment\\\\AlmaIpnSignatureVerifier\\:\\:verify\\(\\) expects array\\<string, string\\>, array\\<string, mixed\\> given\\.$#"
 			count: 1
 			path: src/Controller/Payment/PaymentIpnController.php
-
-		-
-			message: "#^Cannot access offset 'sylius_twig_hooks' on mixed\\.$#"
-			count: 1
-			path: src/DependencyInjection/AlmaSyliusExtension.php
-
-		-
-			message: "#^Parameter \\#2 \\$config of method Symfony\\\\Component\\\\DependencyInjection\\\\ContainerBuilder\\:\\:prependExtensionConfig\\(\\) expects array\\<string, mixed\\>, mixed given\\.$#"
-			count: 1
-			path: src/DependencyInjection/AlmaSyliusExtension.php
 
 		-
 			message: "#^Cannot call method getDeferredDays\\(\\) on mixed\\.$#"
@@ -79,23 +54,3 @@ parameters:
 			message: "#^Parameter \\#3 \\$overrides of method Alma\\\\Sylius\\\\Form\\\\Type\\\\AlmaGatewayConfigurationType\\:\\:addFeePlanOverrideFields\\(\\) expects array\\<string, array\\<string, mixed\\>\\>, mixed given\\.$#"
 			count: 1
 			path: src/Form/Type/AlmaGatewayConfigurationType.php
-
-		-
-			message: "#^Method Alma\\\\Sylius\\\\Resolver\\\\AlmaPaymentMethodResolver\\:\\:__construct\\(\\) has parameter \\$paymentMethodRepository with generic interface Sylius\\\\Component\\\\Payment\\\\Repository\\\\PaymentMethodRepositoryInterface but does not specify its types\\: T$#"
-			count: 1
-			path: src/Resolver/AlmaPaymentMethodResolver.php
-
-		-
-			message: "#^Parameter \\#1 \\$displayTexts of method Alma\\\\Sylius\\\\Entity\\\\AlmaConfiguration\\:\\:setDisplayTexts\\(\\) expects array\\<string, array\\<string, array\\<string, mixed\\>\\>\\>\\|null, array\\<string, array\\<string, mixed\\>\\>\\|null given\\.$#"
-			count: 1
-			path: src/Resolver/AlmaPaymentMethodResolver.php
-
-		-
-			message: "#^Method Alma\\\\Sylius\\\\Twig\\\\AlmaPaymentGatewaysDecorator\\:\\:__construct\\(\\) has parameter \\$paymentMethodRepository with generic interface Sylius\\\\Component\\\\Payment\\\\Repository\\\\PaymentMethodRepositoryInterface but does not specify its types\\: T$#"
-			count: 1
-			path: src/Twig/AlmaPaymentGatewaysDecorator.php
-
-		-
-			message: "#^Method Alma\\\\Sylius\\\\Validator\\\\Constraint\\\\UniqueAlmaPaymentMethodValidator\\:\\:__construct\\(\\) has parameter \\$paymentMethodRepository with generic interface Sylius\\\\Component\\\\Payment\\\\Repository\\\\PaymentMethodRepositoryInterface but does not specify its types\\: T$#"
-			count: 1
-			path: src/Validator/Constraint/UniqueAlmaPaymentMethodValidator.php

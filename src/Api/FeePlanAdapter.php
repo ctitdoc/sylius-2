@@ -8,12 +8,19 @@ use Alma\Plugin\Infrastructure\Adapter\FeePlanAdapterInterface;
 use Alma\Plugin\Infrastructure\Adapter\FeePlanAdapterLocalConfigurationAwareInterface;
 use Alma\Plugin\Infrastructure\Adapter\FeePlanInterface;
 
+/**
+ * @implementation [[sylius-plugin-commons.md#fee-plans]] — a plan as the plugin sees it: Alma's data plus the Merchant's override
+ */
 final class FeePlanAdapter implements FeePlanInterface, FeePlanAdapterInterface, FeePlanAdapterLocalConfigurationAwareInterface
 {
     /**
      * @param array<string, mixed> $apiData    the fee plan as returned by Alma (one entry from AlmaConfiguration::feePlans)
      * @param array<string, mixed> $override   the merchant override entry (one entry from AlmaConfiguration::feePlanOverrides),
      *                                         may be empty when no override is set
+     */
+    /**
+     * @param array<string, mixed> $apiData Alma's data for the plan, as its JSON gives it
+     * @param array<string, mixed> $override the Merchant's override: enabled, narrower bounds
      */
     public function __construct(
         private readonly array $apiData,
@@ -34,7 +41,7 @@ final class FeePlanAdapter implements FeePlanInterface, FeePlanAdapterInterface,
 
     public function isAllowed(): bool
     {
-        return (bool) ($this->apiData['allowed'] ?? false);
+        return $this->bool($this->apiData, 'allowed', false);
     }
 
     public function isEligible(int $purchaseAmount): bool
@@ -105,22 +112,22 @@ final class FeePlanAdapter implements FeePlanInterface, FeePlanAdapterInterface,
 
     public function isEnabled(): bool
     {
-        return (bool) ($this->override['enabled'] ?? false);
+        return $this->bool($this->override, 'enabled', false);
     }
 
     public function getDeferredDays(): int
     {
-        return (int) ($this->apiData['deferred_days'] ?? 0);
+        return $this->int($this->apiData, 'deferred_days', 0);
     }
 
     public function getDeferredMonths(): int
     {
-        return (int) ($this->apiData['deferred_months'] ?? 0);
+        return $this->int($this->apiData, 'deferred_months', 0);
     }
 
     public function getInstallmentsCount(): int
     {
-        return (int) ($this->apiData['installments_count'] ?? 1);
+        return $this->int($this->apiData, 'installments_count', 1);
     }
 
     public function getMerchantFeeFixed(): ?int
@@ -140,7 +147,7 @@ final class FeePlanAdapter implements FeePlanInterface, FeePlanAdapterInterface,
 
     public function getKind(): string
     {
-        return (string) ($this->apiData['kind'] ?? 'general');
+        return $this->string($this->apiData, 'kind', 'general');
     }
 
     public function getLabel(): string
@@ -157,12 +164,12 @@ final class FeePlanAdapter implements FeePlanInterface, FeePlanAdapterInterface,
 
     public function getApiMinPurchaseAmount(): int
     {
-        return (int) ($this->apiData['min_purchase_amount'] ?? 0);
+        return $this->int($this->apiData, 'min_purchase_amount', 0);
     }
 
     public function getApiMaxPurchaseAmount(): int
     {
-        return (int) ($this->apiData['max_purchase_amount'] ?? 0);
+        return $this->int($this->apiData, 'max_purchase_amount', 0);
     }
 
     /**
@@ -179,16 +186,40 @@ final class FeePlanAdapter implements FeePlanInterface, FeePlanAdapterInterface,
 
     private function effectiveMin(): int
     {
-        return (int) ($this->override['override_min_purchase_amount'] ?? $this->apiData['min_purchase_amount'] ?? 0);
+        return $this->int($this->override, 'override_min_purchase_amount', $this->getApiMinPurchaseAmount());
     }
 
     private function effectiveMax(): int
     {
-        return (int) ($this->override['override_max_purchase_amount'] ?? $this->apiData['max_purchase_amount'] ?? 0);
+        return $this->int($this->override, 'override_max_purchase_amount', $this->getApiMaxPurchaseAmount());
     }
 
     private function intOrNull(mixed $value): ?int
     {
-        return $value === null ? null : (int) $value;
+        return \is_scalar($value) ? (int) $value : null;
+    }
+
+    /** @param array<string, mixed> $data A scalar reads as an integer, as Alma's JSON gives numbers or numeric strings; anything else is the default. */
+    private function int(array $data, string $key, int $default): int
+    {
+        $value = $data[$key] ?? null;
+
+        return \is_scalar($value) ? (int) $value : $default;
+    }
+
+    /** @param array<string, mixed> $data */
+    private function bool(array $data, string $key, bool $default): bool
+    {
+        $value = $data[$key] ?? null;
+
+        return \is_scalar($value) ? (bool) $value : $default;
+    }
+
+    /** @param array<string, mixed> $data */
+    private function string(array $data, string $key, string $default): string
+    {
+        $value = $data[$key] ?? null;
+
+        return \is_scalar($value) ? (string) $value : $default;
     }
 }

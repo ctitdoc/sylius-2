@@ -8,6 +8,9 @@ use Alma\Sylius\Checkout\View\FeePlanGroupView;
 use Alma\Sylius\Checkout\View\FeePlanView;
 use Alma\Sylius\Eligibility\AlmaEligibility;
 
+/**
+ * @implementation [[payment-plan-choice]] — the eligible plans grouped for the checkout, with their schedule
+ */
 final class FeePlanGrouper
 {
     public function __construct(
@@ -58,11 +61,11 @@ final class FeePlanGrouper
         $total = 0;
         foreach ($eligibility->getPaymentPlan() as $installment) {
             $amount = isset($installment['total_amount'])
-                ? (int) $installment['total_amount']
-                : (int) ($installment['purchase_amount'] ?? 0)
-                    + (int) ($installment['customer_fee'] ?? 0)
-                    + (int) ($installment['customer_interest'] ?? 0);
-            $dueDate = isset($installment['due_date']) ? (int) $installment['due_date'] : null;
+                ? $this->int($installment['total_amount'])
+                : $this->int($installment['purchase_amount'] ?? 0)
+                    + $this->int($installment['customer_fee'] ?? 0)
+                    + $this->int($installment['customer_interest'] ?? 0);
+            $dueDate = isset($installment['due_date']) ? $this->int($installment['due_date']) : null;
             $isToday = null !== $dueDate &&
                 (new \DateTimeImmutable('@' . $dueDate))->setTimezone($timezone)->format('Y-m-d') === $todayDate;
 
@@ -83,6 +86,12 @@ final class FeePlanGrouper
     /**
      * @return array{string, array<string, int>}
      */
+    /** Alma's JSON gives numbers or numeric strings; anything else counts for nothing. */
+    private function int(mixed $value): int
+    {
+        return \is_scalar($value) ? (int) $value : 0;
+    }
+
     private function buttonLabel(AlmaEligibility $eligibility): array
     {
         $installments = $eligibility->getInstallmentsCount();
