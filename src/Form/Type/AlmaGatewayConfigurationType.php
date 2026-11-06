@@ -25,6 +25,7 @@ use Symfony\Component\Form\FormEvents;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Session\FlashBagAwareSessionInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
@@ -58,6 +59,9 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  *
  * Encryption is handled by {@see \Alma\Sylius\EventListener\AlmaGatewayConfigCryptoListener}
  * at the Doctrine layer — the form sees and writes cleartext keys.
+ */
+/**
+ * @implementation [[merchant-configuration-form]] — the Merchant's configuration of Alma in the Back-Office: keys verified against Alma, plans and overrides, display texts
  */
 final class AlmaGatewayConfigurationType extends AbstractType
 {
@@ -125,7 +129,7 @@ final class AlmaGatewayConfigurationType extends AbstractType
                 $this->addFeePlanOverrideFields(
                     $event->getForm(),
                     $latestFeePlans,
-                    $config['fee_plan_overrides'] ?? [],
+                    $this->overrides($config['fee_plan_overrides'] ?? null),
                 );
 
                 $this->addDisplayTextFields(
@@ -259,7 +263,7 @@ final class AlmaGatewayConfigurationType extends AbstractType
             function (FormEvent $event) use (&$deferredErrors, &$deferredFlash): void {
                 $form = $event->getForm();
 
-                foreach ($deferredErrors['fields'] ?? [] as $field => $message) {
+                foreach ($deferredErrors['fields'] as $field => $message) {
                     if ($form->has($field)) {
                         $form->get($field)->addError(new FormError($this->translator->trans($message)));
                     }
@@ -271,8 +275,10 @@ final class AlmaGatewayConfigurationType extends AbstractType
 
                 if ($deferredFlash !== []) {
                     $session = $this->requestStack->getSession();
-                    foreach ($deferredFlash as $flash) {
-                        $session->getFlashBag()->add('warning', $flash);
+                    if ($session instanceof FlashBagAwareSessionInterface) {
+                        foreach ($deferredFlash as $flash) {
+                            $session->getFlashBag()->add('warning', $flash);
+                        }
                     }
                 }
             },
@@ -310,6 +316,43 @@ final class AlmaGatewayConfigurationType extends AbstractType
         return \is_string($value) && $value !== '' ? $value : null;
     }
 
+    /** Alma's JSON gives numbers or numeric strings; anything else counts for nothing. */
+    private function int(mixed $value): int
+    {
+        return \is_scalar($value) ? (int) $value : 0;
+    }
+
+    /** A field's data as trimmed text; anything not scalar is empty. */
+    private function text(mixed $value): string
+    {
+        return \is_scalar($value) ? trim((string) $value) : '';
+    }
+
+    /**
+     * The Merchant's overrides, plan key → data; anything not shaped so is left out.
+     *
+     * @return array<string, array<string, mixed>>
+     */
+    private function overrides(mixed $value): array
+    {
+        if (!\is_array($value)) {
+            return [];
+        }
+        $overrides = [];
+        foreach ($value as $key => $data) {
+            if (!\is_string($key) || !\is_array($data)) {
+                continue;
+            }
+            foreach ($data as $field => $item) {
+                if (\is_string($field)) {
+                    $overrides[$key][$field] = $item;
+                }
+            }
+        }
+
+        return $overrides;
+    }
+
     /**
      * @param array<string, mixed> $previousConfig
      */
@@ -326,8 +369,8 @@ final class AlmaGatewayConfigurationType extends AbstractType
      */
     private function refreshFeePlans(array $config): array
     {
-        $mode = \in_array($config['api_mode'] ?? null, AlmaConfiguration::MODES, true)
-            ? (string) $config['api_mode']
+        $mode = \is_string($config['api_mode'] ?? null) && \in_array($config['api_mode'], AlmaConfiguration::MODES, true)
+            ? $config['api_mode']
             : AlmaConfiguration::MODE_TEST;
         $key = $mode === AlmaConfiguration::MODE_LIVE
             ? $this->nonEmptyString($config['api_key_live'] ?? null)
@@ -355,8 +398,8 @@ final class AlmaGatewayConfigurationType extends AbstractType
     {
         foreach ($feePlans as $planKey => $apiPlan) {
             $override = $overrides[$planKey] ?? [];
-            $apiMin = (int) ($apiPlan['min_purchase_amount'] ?? 0);
-            $apiMax = (int) ($apiPlan['max_purchase_amount'] ?? 0);
+            $apiMin = $this->int($apiPlan['min_purchase_amount'] ?? 0);
+            $apiMax = $this->int($apiPlan['max_purchase_amount'] ?? 0);
 
             $form->add('fee_plan_enabled__' . $planKey, CheckboxType::class, [
                 'mapped' => false,
@@ -432,10 +475,10 @@ final class AlmaGatewayConfigurationType extends AbstractType
                     continue;
                 }
 
-                $description = trim((string) $form->get(sprintf('display_description__%s__%s', $group->value, $locale))->getData());
+                $description = $this->text($form->get(sprintf('display_description__%s__%s', $group->value, $locale))->getData());
 
                 $texts[$locale][$group->value] = [
-                    'title' => trim((string) $form->get($titleField)->getData()),
+                    'title' => $this->text($form->get($titleField)->getData()),
                     'description' => $description === '' ? null : $description,
                 ];
             }
@@ -502,8 +545,8 @@ final class AlmaGatewayConfigurationType extends AbstractType
                 continue;
             }
 
-            $apiMin = (int) ($apiPlan['min_purchase_amount'] ?? 0);
-            $apiMax = (int) ($apiPlan['max_purchase_amount'] ?? 0);
+            $apiMin = $this->int($apiPlan['min_purchase_amount'] ?? 0);
+            $apiMax = $this->int($apiPlan['max_purchase_amount'] ?? 0);
 
             $enabled = (bool) $form->get($enabledField)->getData();
             [$minClamped, $minWarning] = $this->clampOverride($form->get($minField)->getData(), $apiMin, $apiMax, $planKey);
@@ -535,7 +578,7 @@ final class AlmaGatewayConfigurationType extends AbstractType
      */
     private function clampOverride(mixed $value, int $apiMin, int $apiMax, string $planKey): array
     {
-        if ($value === null || $value === '') {
+        if (!\is_scalar($value) || $value === '') {
             return [null, null];
         }
 
