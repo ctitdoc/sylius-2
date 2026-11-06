@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Alma\Sylius\Tests\Unit\Api;
+namespace Tests\Alma\Sylius\Unit\Api;
 
 use Alma\Client\Domain\ValueObject\Environment;
 use Alma\Sylius\Api\ClientConfigurationFactory;

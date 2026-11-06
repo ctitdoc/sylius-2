@@ -1,0 +1,4 @@
+# Behat suites of the plugin (cycle 2, second pull request). The Sylius suites are imported by
+# behat.yml.dist; the plugin's own suites are declared here.
+default:
+    suites: {}

@@ -1,0 +1,2 @@
+alma_sylius:
+    resource: "@AlmaSyliusPlugin/config/routes/payment.yaml"
