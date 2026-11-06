@@ -38,7 +38,7 @@ use Psr\Log\NullLogger;
  *
  * Every failure mode logs a clear `reason` for operational diagnostics.
  *
- * @implements [[sylius-plugin-commons.md#payment-resolution]]
+ * @implementation [[sylius-plugin-commons.md#payment-resolution]]
  */
 class AlmaPaymentResolver
 {

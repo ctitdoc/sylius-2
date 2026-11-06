@@ -26,7 +26,7 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
  * (Alma\Client\Application\DTO\*) — the spec describes intent, the client
  * describes the technical contract.
  *
- * @implements [[payment-creation]] — the request sent to Alma: amount, plan, addresses, cart, customer, URLs
+ * @implementation [[payment-creation]] — the request sent to Alma: amount, plan, addresses, cart, customer, URLs
  */
 class AlmaPaymentRequestBuilder
 {
