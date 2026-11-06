@@ -31,13 +31,11 @@ jobs:
             matrix:
                 php: ["8.3"]
                 symfony: ["^6.4", "^7.4"]
-                sylius: ["~2.0.0", "~2.1.0", "~2.2.0"]
+                # The skeleton also lists "~2.0.0": Composer now refuses every 2.0.x release, all
+                # affected by published security advisories, so that line cannot build anywhere.
+                sylius: ["~2.1.0", "~2.2.0"]
                 database: ["mysql:8.4"]
                 node: ["22.x"]
-
-                exclude:
-                    - sylius: "~2.0.0"
-                      symfony: "^7.4"
 
                 include:
                     - php: "8.3"
