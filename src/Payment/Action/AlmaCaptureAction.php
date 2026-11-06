@@ -18,6 +18,7 @@ use Payum\Core\Request\Capture;
 use Psr\Log\LoggerInterface;
 use Psr\Log\NullLogger;
 use Sylius\Abstraction\StateMachine\StateMachineInterface;
+use Sylius\Component\Core\Model\OrderInterface;
 use Sylius\Component\Core\Model\PaymentInterface as SyliusPaymentInterface;
 use Sylius\Component\Payment\PaymentTransitions;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -37,8 +38,8 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
  * where they can retry the payment (no rollback of the order, no technical
  * detail surfaced).
  *
- * @implements [[payment-creation]] — the whole of it: creates the Alma payment and redirects
- * @implements [[payment-return]] — a second capture of an already created payment redirects again
+ * @implementation [[payment-creation]] — the whole of it: creates the Alma payment and redirects
+ * @implementation [[payment-return]] — a second capture of an already created payment redirects again
  */
 final class AlmaCaptureAction implements ActionInterface
 {
@@ -57,6 +58,7 @@ final class AlmaCaptureAction implements ActionInterface
     public function execute($request): void
     {
         RequestNotSupportedException::assertSupports($this, $request);
+        \assert($request instanceof Capture);
 
         $payment = $request->getModel();
         if (!$payment instanceof SyliusPaymentInterface) {
@@ -111,11 +113,15 @@ final class AlmaCaptureAction implements ActionInterface
         // Double persistence : indexed AlmaPaymentReference for ORM-native lookup
         // (pid → Payment + Order + persisted mode), in addition to the JSON
         // payload above. Consumed by AlmaPaymentResolver for return/IPN/refund.
+        $order = $payment->getOrder();
+        if (!$order instanceof OrderInterface) {
+            throw new \LogicException('Cannot create Alma payment: the Sylius payment has no order.');
+        }
         $reference = new AlmaPaymentReference(
             $almaPayment->getId(),
             $mode,
             $payment,
-            $payment->getOrder(),
+            $order,
         );
         $this->entityManager->persist($reference);
         $this->entityManager->flush();

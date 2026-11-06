@@ -56,11 +56,6 @@ parameters:
 			path: src/Eligibility/EligibilityFetcher.php
 
 		-
-			message: "#^Parameter \\#1 \\$gatewayConfig of method Alma\\\\Sylius\\\\EventListener\\\\AlmaGatewayConfigCryptoListener\\:\\:applyToConfig\\(\\) expects Sylius\\\\Component\\\\Payment\\\\Model\\\\GatewayConfigInterface, object given\\.$#"
-			count: 5
-			path: src/EventListener/AlmaGatewayConfigCryptoListener.php
-
-		-
 			message: "#^Call to an undefined method Symfony\\\\Component\\\\HttpFoundation\\\\Session\\\\SessionInterface\\:\\:getFlashBag\\(\\)\\.$#"
 			count: 1
 			path: src/Form/Type/AlmaGatewayConfigurationType.php
@@ -86,36 +81,6 @@ parameters:
 			path: src/Form/Type/AlmaGatewayConfigurationType.php
 
 		-
-			message: "#^Cannot call method getModel\\(\\) on mixed\\.$#"
-			count: 1
-			path: src/Payment/Action/AlmaCaptureAction.php
-
-		-
-			message: "#^PHPDoc tag @implements has invalid value \\(\\[\\[payment\\-creation\\]\\] — the whole of it\\: creates the Alma payment and redirects\\)\\: Unexpected token \"\\[\", expected type at offset 746$#"
-			count: 1
-			path: src/Payment/Action/AlmaCaptureAction.php
-
-		-
-			message: "#^PHPDoc tag @implements has invalid value \\(\\[\\[payment\\-return\\]\\] — a second capture of an already created payment redirects again\\)\\: Unexpected token \"\\[\", expected type at offset 842$#"
-			count: 1
-			path: src/Payment/Action/AlmaCaptureAction.php
-
-		-
-			message: "#^Parameter \\#4 \\$syliusOrder of class Alma\\\\Sylius\\\\Entity\\\\AlmaPaymentReference constructor expects Sylius\\\\Component\\\\Core\\\\Model\\\\OrderInterface, Sylius\\\\Component\\\\Core\\\\Model\\\\OrderInterface\\|null given\\.$#"
-			count: 1
-			path: src/Payment/Action/AlmaCaptureAction.php
-
-		-
-			message: "#^PHPDoc tag @implements has invalid value \\(\\[\\[payment\\-creation\\]\\] — the request sent to Alma\\: amount, plan, addresses, cart, customer, URLs\\)\\: Unexpected token \"\\[\", expected type at offset 548$#"
-			count: 1
-			path: src/Payment/AlmaPaymentRequestBuilder.php
-
-		-
-			message: "#^PHPDoc tag @implements has invalid value \\(\\[\\[sylius\\-plugin\\-commons\\.md\\#payment\\-resolution\\]\\]\\)\\: Unexpected token \"\\[\", expected type at offset 1496$#"
-			count: 1
-			path: src/Payment/AlmaPaymentResolver.php
-
-		-
 			message: "#^Method Alma\\\\Sylius\\\\Resolver\\\\AlmaPaymentMethodResolver\\:\\:__construct\\(\\) has parameter \\$paymentMethodRepository with generic interface Sylius\\\\Component\\\\Payment\\\\Repository\\\\PaymentMethodRepositoryInterface but does not specify its types\\: T$#"
 			count: 1
 			path: src/Resolver/AlmaPaymentMethodResolver.php
@@ -134,8 +99,3 @@ parameters:
 			message: "#^Method Alma\\\\Sylius\\\\Validator\\\\Constraint\\\\UniqueAlmaPaymentMethodValidator\\:\\:__construct\\(\\) has parameter \\$paymentMethodRepository with generic interface Sylius\\\\Component\\\\Payment\\\\Repository\\\\PaymentMethodRepositoryInterface but does not specify its types\\: T$#"
 			count: 1
 			path: src/Validator/Constraint/UniqueAlmaPaymentMethodValidator.php
-
-		-
-			message: "#^Parameter \\#1 \\$haystack of function str_starts_with expects string, string\\|null given\\.$#"
-			count: 1
-			path: tests/TestApplication/config/services_test.php
