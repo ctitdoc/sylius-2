@@ -39,8 +39,8 @@ final class FeePlanAdapter implements FeePlanInterface, FeePlanAdapterInterface,
 
     public function isEligible(int $purchaseAmount): bool
     {
-        return $purchaseAmount >= $this->getMinPurchaseAmount()
-            && $purchaseAmount <= $this->getMaxPurchaseAmount();
+        return $purchaseAmount >= $this->getMinPurchaseAmount() &&
+            $purchaseAmount <= $this->getMaxPurchaseAmount();
     }
 
     public function isAvailable(): bool

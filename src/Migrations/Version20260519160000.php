@@ -22,7 +22,7 @@ final class Version20260519160000 extends AbstractMigration
     public function up(Schema $schema): void
     {
         $this->addSql(
-            'ALTER TABLE alma_configuration ADD product_widget_enabled TINYINT(1) NOT NULL DEFAULT 0'
+            'ALTER TABLE alma_configuration ADD product_widget_enabled TINYINT(1) NOT NULL DEFAULT 0',
         );
     }
 

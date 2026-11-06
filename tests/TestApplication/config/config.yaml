@@ -1,0 +1,5 @@
+imports:
+    - { resource: "services_test.php" }
+
+# The plugin prepends its own Doctrine migrations, entity mappings, translations and Twig hooks
+# from its extension, and loads its services; its routes are imported by routes.yaml.

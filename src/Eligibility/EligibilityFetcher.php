@@ -82,6 +82,7 @@ class EligibilityFetcher
                 'amount' => $purchaseAmountInCents,
                 'exception' => $e::class,
             ]);
+
             throw new EligibilityFetchFailedException($e->getMessage(), 0, $e);
         }
 

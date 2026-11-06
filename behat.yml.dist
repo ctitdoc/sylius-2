@@ -1,0 +1,47 @@
+# The Sylius suites file is not imported: Sylius 2.1 and 2.2 ship it as suites.yml, 2.3 as suites.php,
+# and a Behat import cannot be conditional. The plugin's suites declare their contexts themselves.
+imports:
+    - tests/Behat/Resources/suites.yml
+
+default:
+    formatters:
+        pretty:
+            verbose: true
+            paths: false
+            snippets: false
+
+    extensions:
+        DMore\ChromeExtension\Behat\ServiceContainer\ChromeExtension: ~
+
+        FriendsOfBehat\MinkDebugExtension:
+            directory: etc/build
+            clean_start: false
+            screenshot: true
+
+        Behat\MinkExtension:
+            files_path: "%paths.base%/vendor/sylius/sylius/src/Sylius/Behat/Resources/fixtures/"
+            base_url: "%env(BEHAT_BASE_URL)%"
+            default_session: symfony
+            javascript_session: chrome
+            sessions:
+                symfony:
+                    symfony: ~
+                chrome:
+                    chrome:
+                        api_url: http://127.0.0.1:9222
+                        validate_certificate: false
+            show_auto: false
+
+        FriendsOfBehat\SymfonyExtension:
+            bootstrap: vendor/sylius/test-application/config/bootstrap.php
+            kernel:
+                class: Sylius\TestApplication\Kernel
+                environment: test
+
+        FriendsOfBehat\VariadicExtension: ~
+
+        FriendsOfBehat\SuiteSettingsExtension:
+            paths:
+                - "features"
+
+        SyliusLabs\SuiteTagsExtension: ~

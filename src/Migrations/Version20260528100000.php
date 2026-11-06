@@ -39,7 +39,7 @@ final class Version20260528100000 extends AbstractMigration
             . 'fee_plan_overrides JSON DEFAULT NULL, '
             . 'product_widget_enabled TINYINT(1) NOT NULL DEFAULT 0, '
             . 'PRIMARY KEY(id)'
-            . ') DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB'
+            . ') DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB',
         );
     }
 }

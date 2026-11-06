@@ -33,17 +33,17 @@ final class Version20260519100000 extends AbstractMigration
                 UNIQUE INDEX UNIQ_alma_payment_reference_sylius_payment_id (sylius_payment_id),
                 INDEX IDX_alma_payment_reference_sylius_order_id (sylius_order_id),
                 PRIMARY KEY(id)
-            ) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB'
+            ) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB',
         );
         $this->addSql(
             'ALTER TABLE alma_payment_reference
                 ADD CONSTRAINT FK_alma_payment_reference_sylius_payment
-                FOREIGN KEY (sylius_payment_id) REFERENCES sylius_payment (id) ON DELETE CASCADE'
+                FOREIGN KEY (sylius_payment_id) REFERENCES sylius_payment (id) ON DELETE CASCADE',
         );
         $this->addSql(
             'ALTER TABLE alma_payment_reference
                 ADD CONSTRAINT FK_alma_payment_reference_sylius_order
-                FOREIGN KEY (sylius_order_id) REFERENCES sylius_order (id) ON DELETE CASCADE'
+                FOREIGN KEY (sylius_order_id) REFERENCES sylius_order (id) ON DELETE CASCADE',
         );
 
         // Backfill from existing sylius_payment.details JSON. MySQL 8.x.
@@ -56,7 +56,7 @@ final class Version20260519100000 extends AbstractMigration
                     order_id
                 FROM sylius_payment
                 WHERE JSON_EXTRACT(details, '$.alma_payment_id') IS NOT NULL
-                  AND JSON_EXTRACT(details, '$.alma_mode') IS NOT NULL"
+                  AND JSON_EXTRACT(details, '$.alma_mode') IS NOT NULL",
         );
     }
 

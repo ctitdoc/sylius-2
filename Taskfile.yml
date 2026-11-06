@@ -1,0 +1,70 @@
+# Gestures of the plugin, as go-task: one word per action, the same on a developer's machine, in an
+# agent's session and in automation. They wrap the targets of the Makefile shipped by the Sylius
+# Plugin Skeleton, which stays the reference a Sylius maintainer expects.
+version: '3'
+
+vars:
+  ENV: '{{.ENV | default "dev"}}'
+
+tasks:
+  init:
+    desc: Docker environment, dependencies, frontend of the Test Application
+    cmds:
+      - make -s init ENV={{.ENV}}
+  up:
+    desc: Start the containers
+    cmds:
+      - make -s up ENV={{.ENV}}
+  down:
+    desc: Stop the containers
+    cmds:
+      - make -s down ENV={{.ENV}}
+  database-init:
+    desc: Create the Test Application database and run the migrations
+    cmds:
+      - make -s database-init ENV={{.ENV}}
+  database-reset:
+    desc: Drop, create, migrate
+    cmds:
+      - make -s database-reset ENV={{.ENV}}
+  test:
+    desc: "PHPUnit, all suites (task test -- --testsuite=unit for one)"
+    cmds:
+      - docker compose run --rm php vendor/bin/phpunit {{.CLI_ARGS}}
+  coverage:
+    desc: PHPUnit with the coverage report of src, in text
+    cmds:
+      - docker compose run --rm -e XDEBUG_MODE=coverage php vendor/bin/phpunit --coverage-text {{.CLI_ARGS}}
+  behat:
+    desc: Behat scenarios (non-JavaScript)
+    cmds:
+      - docker compose run --rm php vendor/bin/behat --strict --tags="~@javascript&&~@mink:chromedriver" {{.CLI_ARGS}}
+  phpstan:
+    desc: Static analysis, level max
+    cmds:
+      - docker compose run --rm php vendor/bin/phpstan analyse -c phpstan.neon {{.CLI_ARGS}}
+  ecs:
+    desc: Coding standard, check
+    cmds:
+      - docker compose run --rm php vendor/bin/ecs check {{.CLI_ARGS}}
+  ecs:fix:
+    desc: Coding standard, fix
+    cmds:
+      - docker compose run --rm php vendor/bin/ecs check --fix {{.CLI_ARGS}}
+  lint:
+    desc: Static analysis and coding standard
+    cmds:
+      - task: phpstan
+      - task: ecs
+  check:
+    desc: Everything the CI runs, but Behat JavaScript
+    cmds:
+      - docker compose run --rm php composer validate --ansi --strict
+      - task: lint
+      - task: test
+      - docker compose run --rm php vendor/bin/console lint:container
+      - task: behat
+  php-shell:
+    desc: A shell in the php container
+    cmds:
+      - make -s php-shell

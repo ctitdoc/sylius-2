@@ -1,0 +1,4 @@
+# Behat suites of the plugin (cycle 2, second pull request). Each suite names its contexts itself:
+# the Sylius suites file is not imported (suites.yml in Sylius 2.1 and 2.2, suites.php in 2.3).
+default:
+    suites: {}

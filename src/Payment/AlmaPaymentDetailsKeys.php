@@ -27,12 +27,19 @@ namespace Alma\Sylius\Payment;
 final class AlmaPaymentDetailsKeys
 {
     public const PAYMENT_ID = 'alma_payment_id';
+
     public const PAYMENT_URL = 'alma_payment_url';
+
     public const MODE = 'alma_mode';
+
     public const FEE_PLAN_KEY = 'alma_fee_plan_key';
+
     public const REFUND_AMOUNT = 'alma_refund_amount';
+
     public const REFUND_COMMENT = 'alma_refund_comment';
+
     public const REFUND_AT = 'alma_refund_at';
+
     public const FRAUD_REASON = 'alma_fraud_reason';
 
     private function __construct()

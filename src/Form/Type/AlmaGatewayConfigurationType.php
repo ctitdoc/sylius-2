@@ -62,7 +62,9 @@ use Symfony\Contracts\Translation\TranslatorInterface;
 final class AlmaGatewayConfigurationType extends AbstractType
 {
     private const DEFAULT_FEE_PLAN_KEY = 'general_3_0_0';
+
     private const DISPLAY_TITLE_MAX_LENGTH = 50;
+
     private const DISPLAY_DESCRIPTION_MAX_LENGTH = 150;
 
     public function __construct(
@@ -180,11 +182,11 @@ final class AlmaGatewayConfigurationType extends AbstractType
                 }
 
                 if (
-                    $fieldErrors === []
-                    && $bothPresent
-                    && $liveResult?->isSuccess()
-                    && $testResult?->isSuccess()
-                    && $liveResult->getMerchantId() !== $testResult->getMerchantId()
+                    $fieldErrors === [] &&
+                    $bothPresent &&
+                    $liveResult?->isSuccess() &&
+                    $testResult?->isSuccess() &&
+                    $liveResult->getMerchantId() !== $testResult->getMerchantId()
                 ) {
                     $formError = 'alma_sylius.form.error.cross_keys_merchant_mismatch';
                     if ($liveChanged) {
@@ -228,9 +230,9 @@ final class AlmaGatewayConfigurationType extends AbstractType
                 [$overrides, $warnings] = $this->collectOverrides($event->getForm(), $data['fee_plans'] ?? []);
 
                 if (
-                    $data['merchant_id'] !== null
-                    && $this->hadNoValidKeyBefore($previousConfig)
-                    && ($previousConfig['fee_plan_overrides'] ?? []) === []
+                    $data['merchant_id'] !== null &&
+                    $this->hadNoValidKeyBefore($previousConfig) &&
+                    ($previousConfig['fee_plan_overrides'] ?? []) === []
                 ) {
                     $freshFeePlans = $this->refreshFeePlans($data);
                     $autoPlan = $freshFeePlans[self::DEFAULT_FEE_PLAN_KEY] ?? null;
@@ -313,8 +315,8 @@ final class AlmaGatewayConfigurationType extends AbstractType
      */
     private function hadNoValidKeyBefore(array $previousConfig): bool
     {
-        return $this->nonEmptyString($previousConfig['api_key_live'] ?? null) === null
-            && $this->nonEmptyString($previousConfig['api_key_test'] ?? null) === null;
+        return $this->nonEmptyString($previousConfig['api_key_live'] ?? null) === null &&
+            $this->nonEmptyString($previousConfig['api_key_test'] ?? null) === null;
     }
 
     /**

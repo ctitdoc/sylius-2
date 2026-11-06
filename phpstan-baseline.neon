@@ -1,0 +1,141 @@
+parameters:
+	ignoreErrors:
+		-
+			message: "#^Cannot cast mixed to int\\.$#"
+			count: 8
+			path: src/Api/FeePlanAdapter.php
+
+		-
+			message: "#^Cannot cast mixed to string\\.$#"
+			count: 1
+			path: src/Api/FeePlanAdapter.php
+
+		-
+			message: "#^Cannot cast mixed to int\\.$#"
+			count: 5
+			path: src/Checkout/FeePlanGrouper.php
+
+		-
+			message: "#^Parameter \\#2 \\$params of method Alma\\\\Sylius\\\\Payment\\\\AlmaIpnSignatureVerifier\\:\\:verify\\(\\) expects array\\<string, string\\>, array\\<string, mixed\\> given\\.$#"
+			count: 1
+			path: src/Controller/Payment/PaymentIpnController.php
+
+		-
+			message: "#^Cannot access offset 'sylius_twig_hooks' on mixed\\.$#"
+			count: 1
+			path: src/DependencyInjection/AlmaSyliusExtension.php
+
+		-
+			message: "#^Parameter \\#2 \\$config of method Symfony\\\\Component\\\\DependencyInjection\\\\ContainerBuilder\\:\\:prependExtensionConfig\\(\\) expects array\\<string, mixed\\>, mixed given\\.$#"
+			count: 1
+			path: src/DependencyInjection/AlmaSyliusExtension.php
+
+		-
+			message: "#^Cannot call method getDeferredDays\\(\\) on mixed\\.$#"
+			count: 1
+			path: src/Eligibility/EligibilityFetcher.php
+
+		-
+			message: "#^Cannot call method getDeferredMonths\\(\\) on mixed\\.$#"
+			count: 1
+			path: src/Eligibility/EligibilityFetcher.php
+
+		-
+			message: "#^Cannot call method getInstallmentsCount\\(\\) on mixed\\.$#"
+			count: 1
+			path: src/Eligibility/EligibilityFetcher.php
+
+		-
+			message: "#^Cannot call method getKind\\(\\) on mixed\\.$#"
+			count: 1
+			path: src/Eligibility/EligibilityFetcher.php
+
+		-
+			message: "#^Parameter \\#3 \\$remote of class Alma\\\\Sylius\\\\Eligibility\\\\AlmaEligibility constructor expects Alma\\\\Client\\\\Domain\\\\Entity\\\\Eligibility, mixed given\\.$#"
+			count: 1
+			path: src/Eligibility/EligibilityFetcher.php
+
+		-
+			message: "#^Parameter \\#1 \\$gatewayConfig of method Alma\\\\Sylius\\\\EventListener\\\\AlmaGatewayConfigCryptoListener\\:\\:applyToConfig\\(\\) expects Sylius\\\\Component\\\\Payment\\\\Model\\\\GatewayConfigInterface, object given\\.$#"
+			count: 5
+			path: src/EventListener/AlmaGatewayConfigCryptoListener.php
+
+		-
+			message: "#^Call to an undefined method Symfony\\\\Component\\\\HttpFoundation\\\\Session\\\\SessionInterface\\:\\:getFlashBag\\(\\)\\.$#"
+			count: 1
+			path: src/Form/Type/AlmaGatewayConfigurationType.php
+
+		-
+			message: "#^Cannot cast mixed to int\\.$#"
+			count: 5
+			path: src/Form/Type/AlmaGatewayConfigurationType.php
+
+		-
+			message: "#^Cannot cast mixed to string\\.$#"
+			count: 2
+			path: src/Form/Type/AlmaGatewayConfigurationType.php
+
+		-
+			message: "#^Offset 'fields' on array\\{fields\\: array\\<'api_key_live'\\|'api_key_test', string\\>, form\\: 'alma_sylius\\.form…'\\|null\\} on left side of \\?\\? always exists and is not nullable\\.$#"
+			count: 1
+			path: src/Form/Type/AlmaGatewayConfigurationType.php
+
+		-
+			message: "#^Parameter \\#3 \\$overrides of method Alma\\\\Sylius\\\\Form\\\\Type\\\\AlmaGatewayConfigurationType\\:\\:addFeePlanOverrideFields\\(\\) expects array\\<string, array\\<string, mixed\\>\\>, mixed given\\.$#"
+			count: 1
+			path: src/Form/Type/AlmaGatewayConfigurationType.php
+
+		-
+			message: "#^Cannot call method getModel\\(\\) on mixed\\.$#"
+			count: 1
+			path: src/Payment/Action/AlmaCaptureAction.php
+
+		-
+			message: "#^PHPDoc tag @implements has invalid value \\(\\[\\[payment\\-creation\\]\\] — the whole of it\\: creates the Alma payment and redirects\\)\\: Unexpected token \"\\[\", expected type at offset 746$#"
+			count: 1
+			path: src/Payment/Action/AlmaCaptureAction.php
+
+		-
+			message: "#^PHPDoc tag @implements has invalid value \\(\\[\\[payment\\-return\\]\\] — a second capture of an already created payment redirects again\\)\\: Unexpected token \"\\[\", expected type at offset 842$#"
+			count: 1
+			path: src/Payment/Action/AlmaCaptureAction.php
+
+		-
+			message: "#^Parameter \\#4 \\$syliusOrder of class Alma\\\\Sylius\\\\Entity\\\\AlmaPaymentReference constructor expects Sylius\\\\Component\\\\Core\\\\Model\\\\OrderInterface, Sylius\\\\Component\\\\Core\\\\Model\\\\OrderInterface\\|null given\\.$#"
+			count: 1
+			path: src/Payment/Action/AlmaCaptureAction.php
+
+		-
+			message: "#^PHPDoc tag @implements has invalid value \\(\\[\\[payment\\-creation\\]\\] — the request sent to Alma\\: amount, plan, addresses, cart, customer, URLs\\)\\: Unexpected token \"\\[\", expected type at offset 548$#"
+			count: 1
+			path: src/Payment/AlmaPaymentRequestBuilder.php
+
+		-
+			message: "#^PHPDoc tag @implements has invalid value \\(\\[\\[sylius\\-plugin\\-commons\\.md\\#payment\\-resolution\\]\\]\\)\\: Unexpected token \"\\[\", expected type at offset 1496$#"
+			count: 1
+			path: src/Payment/AlmaPaymentResolver.php
+
+		-
+			message: "#^Method Alma\\\\Sylius\\\\Resolver\\\\AlmaPaymentMethodResolver\\:\\:__construct\\(\\) has parameter \\$paymentMethodRepository with generic interface Sylius\\\\Component\\\\Payment\\\\Repository\\\\PaymentMethodRepositoryInterface but does not specify its types\\: T$#"
+			count: 1
+			path: src/Resolver/AlmaPaymentMethodResolver.php
+
+		-
+			message: "#^Parameter \\#1 \\$displayTexts of method Alma\\\\Sylius\\\\Entity\\\\AlmaConfiguration\\:\\:setDisplayTexts\\(\\) expects array\\<string, array\\<string, array\\<string, mixed\\>\\>\\>\\|null, array\\<string, array\\<string, mixed\\>\\>\\|null given\\.$#"
+			count: 1
+			path: src/Resolver/AlmaPaymentMethodResolver.php
+
+		-
+			message: "#^Method Alma\\\\Sylius\\\\Twig\\\\AlmaPaymentGatewaysDecorator\\:\\:__construct\\(\\) has parameter \\$paymentMethodRepository with generic interface Sylius\\\\Component\\\\Payment\\\\Repository\\\\PaymentMethodRepositoryInterface but does not specify its types\\: T$#"
+			count: 1
+			path: src/Twig/AlmaPaymentGatewaysDecorator.php
+
+		-
+			message: "#^Method Alma\\\\Sylius\\\\Validator\\\\Constraint\\\\UniqueAlmaPaymentMethodValidator\\:\\:__construct\\(\\) has parameter \\$paymentMethodRepository with generic interface Sylius\\\\Component\\\\Payment\\\\Repository\\\\PaymentMethodRepositoryInterface but does not specify its types\\: T$#"
+			count: 1
+			path: src/Validator/Constraint/UniqueAlmaPaymentMethodValidator.php
+
+		-
+			message: "#^Parameter \\#1 \\$haystack of function str_starts_with expects string, string\\|null given\\.$#"
+			count: 1
+			path: tests/TestApplication/config/services_test.php

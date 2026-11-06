@@ -14,8 +14,11 @@ namespace Alma\Sylius\Payment;
 final class AlmaFraudCheckResult
 {
     public const REASON_PID_MISMATCH = 'pid_mismatch';
+
     public const REASON_AMOUNT_MISMATCH = 'amount_mismatch';
+
     public const REASON_STATE_ERROR = 'state_error';
+
     public const REASON_EXPIRED = 'expired';
 
     private function __construct(
