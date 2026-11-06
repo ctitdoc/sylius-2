@@ -6,6 +6,10 @@ namespace Alma\Sylius\Security;
 
 use SensitiveParameter;
 
+/**
+ * @implementation [[sylius-plugin-commons.md#key-encryption]] — the cipher itself: secretbox under a key derived
+ * from the application secret, `v1:` prefixed payloads
+ */
 final class ApiKeyCipher
 {
     private const VERSION = 'v1';

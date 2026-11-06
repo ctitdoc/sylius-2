@@ -25,6 +25,10 @@ use Sylius\Component\Payment\Model\GatewayConfigInterface;
  * The cipher uses {@see ApiKeyCipher} keyed by Symfony's `kernel.secret`,
  * preserving the encryption invariant documented in CLAUDE.md.
  */
+/**
+ * @implementation [[sylius-plugin-commons.md#key-encryption]] — ciphers the two API keys of an Alma gateway
+ * configuration on write, reads them back in clear; coexists with Sylius 2's native encryption on the native path
+ */
 final class AlmaGatewayConfigCryptoListener
 {
     private const ENCRYPTED_KEYS = ['api_key_live', 'api_key_test'];
@@ -115,6 +119,7 @@ final class AlmaGatewayConfigCryptoListener
             : $value);
     }
 
+    /** @phpstan-assert-if-true GatewayConfigInterface $entity */
     private function isAlmaGatewayConfig(mixed $entity): bool
     {
         return $entity instanceof GatewayConfigInterface &&
