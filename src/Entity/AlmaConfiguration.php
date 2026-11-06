@@ -19,12 +19,17 @@ namespace Alma\Sylius\Entity;
 class AlmaConfiguration
 {
     public const MODE_LIVE = 'live';
+
     public const MODE_TEST = 'test';
+
     public const MODES = [self::MODE_LIVE, self::MODE_TEST];
 
     private ?string $apiKeyLive = null;
+
     private ?string $apiKeyTest = null;
+
     private string $apiMode = self::MODE_TEST;
+
     private ?string $merchantId = null;
 
     /** @var array<string, array<string, mixed>>|null */

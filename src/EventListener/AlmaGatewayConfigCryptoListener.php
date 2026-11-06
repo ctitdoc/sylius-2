@@ -117,8 +117,8 @@ final class AlmaGatewayConfigCryptoListener
 
     private function isAlmaGatewayConfig(mixed $entity): bool
     {
-        return $entity instanceof GatewayConfigInterface
-            && $entity->getFactoryName() === AlmaPaymentMethodResolver::GATEWAY_FACTORY_NAME;
+        return $entity instanceof GatewayConfigInterface &&
+            $entity->getFactoryName() === AlmaPaymentMethodResolver::GATEWAY_FACTORY_NAME;
     }
 
     /**

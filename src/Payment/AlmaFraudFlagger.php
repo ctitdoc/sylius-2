@@ -62,8 +62,8 @@ class AlmaFraudFlagger
         // A bare state_error (return URL hit while the Alma payment never
         // got authorized/captured) is flagged as a fraud attempt but the
         // order itself stays alive so the customer can retry.
-        if ($reason !== AlmaFraudCheckResult::REASON_STATE_ERROR
-            && $this->stateMachine->can(
+        if ($reason !== AlmaFraudCheckResult::REASON_STATE_ERROR &&
+            $this->stateMachine->can(
                 $resolved->order,
                 OrderTransitions::GRAPH,
                 OrderTransitions::TRANSITION_CANCEL,

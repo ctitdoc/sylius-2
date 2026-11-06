@@ -53,6 +53,7 @@ use Symfony\Component\Routing\Annotation\Route;
 final class PaymentIpnController
 {
     private const SIGNATURE_HEADER = 'X-Alma-Signature';
+
     private const SIGNATURE_QUERY_PARAM = 'signature';
 
     public function __construct(

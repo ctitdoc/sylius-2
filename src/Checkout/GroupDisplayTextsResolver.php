@@ -91,8 +91,8 @@ final class GroupDisplayTextsResolver
 
     private function isCovered(string $key, string $locale): bool
     {
-        return $this->translator instanceof TranslatorBagInterface
-            && $this->translator->getCatalogue($locale)->has($key);
+        return $this->translator instanceof TranslatorBagInterface &&
+            $this->translator->getCatalogue($locale)->has($key);
     }
 
     private function nonEmptyString(mixed $value): ?string

@@ -63,8 +63,8 @@ final class FeePlanGrouper
                     + (int) ($installment['customer_fee'] ?? 0)
                     + (int) ($installment['customer_interest'] ?? 0);
             $dueDate = isset($installment['due_date']) ? (int) $installment['due_date'] : null;
-            $isToday = null !== $dueDate
-                && (new \DateTimeImmutable('@' . $dueDate))->setTimezone($timezone)->format('Y-m-d') === $todayDate;
+            $isToday = null !== $dueDate &&
+                (new \DateTimeImmutable('@' . $dueDate))->setTimezone($timezone)->format('Y-m-d') === $todayDate;
 
             $rows[] = ['isToday' => $isToday, 'dueDate' => $dueDate, 'amount' => $amount];
             $total += $amount;
