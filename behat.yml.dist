@@ -1,5 +1,6 @@
+# The Sylius suites file is not imported: Sylius 2.1 and 2.2 ship it as suites.yml, 2.3 as suites.php,
+# and a Behat import cannot be conditional. The plugin's suites declare their contexts themselves.
 imports:
-    - vendor/sylius/sylius/src/Sylius/Behat/Resources/config/suites.php
     - tests/Behat/Resources/suites.yml
 
 default:
