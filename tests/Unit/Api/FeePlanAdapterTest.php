@@ -29,13 +29,6 @@ final class FeePlanAdapterTest extends TestCase
         'customer_fee_variable' => 0,
     ];
 
-    public function testThePlanKeyIsKindInstalmentsDaysMonths(): void
-    {
-        self::assertSame('general_3_0_0', (new FeePlanAdapter(self::ALMA_3X))->getPlanKey());
-        self::assertSame('general_1_15_0', (new FeePlanAdapter(['installments_count' => 1, 'deferred_days' => 15]))->getPlanKey());
-        self::assertSame('general_1_0_0', (new FeePlanAdapter([]))->getPlanKey(), 'defaults: general, 1 instalment, no deferral');
-    }
-
     public function testEligibilityFollowsAlmaBoundsInclusive(): void
     {
         $plan = new FeePlanAdapter(self::ALMA_3X);

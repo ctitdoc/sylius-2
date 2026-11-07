@@ -15,6 +15,7 @@ use Sylius\Component\Payment\Repository\PaymentMethodRepositoryInterface;
  * Characterisation of the configuration resolver ([[merchant-configuration]],
  * [[one-alma-configuration-per-shop]]): the first payment method whose gateway factory is `alma`
  * gives the Merchant's configuration; the API key of a mode; a shop without Alma gets defaults.
+ * Pruned on 7 November 2026 (practices, "what a unit test keeps"): the read-once mechanism.
  *
  * @implementation [[sylius-plugin-commons.md#configuration-resolver]]
  */
@@ -65,18 +66,6 @@ final class AlmaPaymentMethodResolverTest extends TestCase
         self::assertNull($configuration->getDisplayTexts(), 'a non-array is no texts');
         self::assertFalse($configuration->isProductWidgetEnabled());
         self::assertNull($resolver->getApiKeyByMode(AlmaConfiguration::MODE_TEST));
-    }
-
-    public function testTheConfigurationIsReadOnceUntilReset(): void
-    {
-        $repository = $this->createMock(PaymentMethodRepositoryInterface::class);
-        $repository->expects(self::exactly(2))->method('findAll')->willReturn([$this->method('alma', ['api_mode' => 'test'])]);
-        $resolver = new AlmaPaymentMethodResolver($repository);
-
-        $resolver->getConfiguration();
-        $resolver->getConfiguration();
-        $resolver->reset();
-        $resolver->getConfiguration();
     }
 
     public function testIsAlmaLooksAtTheGatewayFactory(): void
