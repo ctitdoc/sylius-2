@@ -117,10 +117,18 @@ class AlmaPaymentMethodResolver implements ResetInterface
                 : AlmaConfiguration::MODE_TEST,
         );
         $configuration->setMerchantId($this->nullableString($config['merchant_id'] ?? null));
-        $configuration->setFeePlans($this->plans($config['fee_plans'] ?? null));
-        $configuration->setFeePlanOverrides($this->plans($config['fee_plan_overrides'] ?? null));
+        // The stored JSON is trusted for its shape: the plans were written by FeePlansFetcher from the
+        // client's typed getters, the overrides and the display texts by the configuration form.
+        /** @var array<string, array<string, mixed>>|null $feePlans */
+        $feePlans = $this->nullableArray($config['fee_plans'] ?? null);
+        $configuration->setFeePlans($feePlans);
+        /** @var array<string, array<string, mixed>>|null $feePlanOverrides */
+        $feePlanOverrides = $this->nullableArray($config['fee_plan_overrides'] ?? null);
+        $configuration->setFeePlanOverrides($feePlanOverrides);
         $configuration->setProductWidgetEnabled((bool) ($config['product_widget_enabled'] ?? true));
-        $configuration->setDisplayTexts($this->displayTexts($config['display_texts'] ?? null));
+        /** @var array<string, array<string, array<string, mixed>>>|null $displayTexts */
+        $displayTexts = $this->nullableArray($config['display_texts'] ?? null);
+        $configuration->setDisplayTexts($displayTexts);
 
         return $configuration;
     }
@@ -133,58 +141,9 @@ class AlmaPaymentMethodResolver implements ResetInterface
     /**
      * @return array<string, array<string, mixed>>|null
      */
-    /**
-     * The display texts, locale → block → field → value; anything not shaped so is left out.
-     *
-     * @return array<string, array<string, array<string, mixed>>>|null
-     */
-    private function displayTexts(mixed $value): ?array
+    /** @return array<mixed>|null */
+    private function nullableArray(mixed $value): ?array
     {
-        if (!\is_array($value)) {
-            return null;
-        }
-        $texts = [];
-        foreach ($value as $locale => $blocks) {
-            if (!\is_string($locale) || !\is_array($blocks)) {
-                continue;
-            }
-            foreach ($blocks as $block => $fields) {
-                if (!\is_string($block) || !\is_array($fields)) {
-                    continue;
-                }
-                foreach ($fields as $field => $text) {
-                    if (\is_string($field)) {
-                        $texts[$locale][$block][$field] = $text;
-                    }
-                }
-            }
-        }
-
-        return [] === $texts ? null : $texts;
-    }
-
-    /**
-     * Plans or their overrides, plan key → data; anything not shaped so is left out.
-     *
-     * @return array<string, array<string, mixed>>|null
-     */
-    private function plans(mixed $value): ?array
-    {
-        if (!\is_array($value)) {
-            return null;
-        }
-        $plans = [];
-        foreach ($value as $key => $data) {
-            if (!\is_string($key) || !\is_array($data)) {
-                continue;
-            }
-            foreach ($data as $field => $item) {
-                if (\is_string($field)) {
-                    $plans[$key][$field] = $item;
-                }
-            }
-        }
-
-        return [] === $plans ? null : $plans;
+        return \is_array($value) && $value !== [] ? $value : null;
     }
 }
