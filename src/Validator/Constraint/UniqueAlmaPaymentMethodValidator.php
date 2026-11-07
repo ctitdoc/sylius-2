@@ -13,8 +13,12 @@ use Symfony\Component\Validator\ConstraintValidator;
 use Symfony\Component\Validator\Exception\UnexpectedTypeException;
 use Symfony\Component\Validator\Exception\UnexpectedValueException;
 
+/**
+ * @implementation [[one-alma-configuration-per-shop]] — refuses a second Alma payment method
+ */
 final class UniqueAlmaPaymentMethodValidator extends ConstraintValidator
 {
+    /** @param PaymentMethodRepositoryInterface<PaymentMethodInterface> $paymentMethodRepository */
     public function __construct(
         private readonly PaymentMethodRepositoryInterface $paymentMethodRepository,
     ) {

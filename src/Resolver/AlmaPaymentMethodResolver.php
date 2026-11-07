@@ -20,12 +20,16 @@ use Symfony\Contracts\Service\ResetInterface;
  * code (eligibility, payment creation, IPN, refund, fraud, product-widget) does
  * not couple to the Sylius storage shape.
  */
+/**
+ * @implementation [[sylius-plugin-commons.md#configuration-resolver]] — the Alma payment method of the shop and its configuration
+ */
 class AlmaPaymentMethodResolver implements ResetInterface
 {
     public const GATEWAY_FACTORY_NAME = 'alma';
 
     private ?AlmaConfiguration $configuration = null;
 
+    /** @param PaymentMethodRepositoryInterface<PaymentMethodInterface> $paymentMethodRepository */
     public function __construct(
         private readonly PaymentMethodRepositoryInterface $paymentMethodRepository,
     ) {
@@ -113,10 +117,18 @@ class AlmaPaymentMethodResolver implements ResetInterface
                 : AlmaConfiguration::MODE_TEST,
         );
         $configuration->setMerchantId($this->nullableString($config['merchant_id'] ?? null));
-        $configuration->setFeePlans($this->nullableArray($config['fee_plans'] ?? null));
-        $configuration->setFeePlanOverrides($this->nullableArray($config['fee_plan_overrides'] ?? null));
+        // The stored JSON is trusted for its shape: the plans were written by FeePlansFetcher from the
+        // client's typed getters, the overrides and the display texts by the configuration form.
+        /** @var array<string, array<string, mixed>>|null $feePlans */
+        $feePlans = $this->nullableArray($config['fee_plans'] ?? null);
+        $configuration->setFeePlans($feePlans);
+        /** @var array<string, array<string, mixed>>|null $feePlanOverrides */
+        $feePlanOverrides = $this->nullableArray($config['fee_plan_overrides'] ?? null);
+        $configuration->setFeePlanOverrides($feePlanOverrides);
         $configuration->setProductWidgetEnabled((bool) ($config['product_widget_enabled'] ?? true));
-        $configuration->setDisplayTexts($this->nullableArray($config['display_texts'] ?? null));
+        /** @var array<string, array<string, array<string, mixed>>>|null $displayTexts */
+        $displayTexts = $this->nullableArray($config['display_texts'] ?? null);
+        $configuration->setDisplayTexts($displayTexts);
 
         return $configuration;
     }
@@ -129,6 +141,7 @@ class AlmaPaymentMethodResolver implements ResetInterface
     /**
      * @return array<string, array<string, mixed>>|null
      */
+    /** @return array<mixed>|null */
     private function nullableArray(mixed $value): ?array
     {
         return \is_array($value) && $value !== [] ? $value : null;
