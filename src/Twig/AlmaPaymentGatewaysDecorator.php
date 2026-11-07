@@ -23,8 +23,12 @@ use Twig\TwigFunction;
  * specs-sylius/module-configuration, Requirement "Only one Alma PaymentMethod
  * per shop".
  */
+/**
+ * @implementation [[one-alma-configuration-per-shop]] — removes Alma from the admin gateway choice once a method exists
+ */
 final class AlmaPaymentGatewaysDecorator extends AbstractExtension
 {
+    /** @param PaymentMethodRepositoryInterface<PaymentMethodInterface> $paymentMethodRepository */
     public function __construct(
         private readonly PaymentMethodExtension $inner,
         private readonly PaymentMethodRepositoryInterface $paymentMethodRepository,

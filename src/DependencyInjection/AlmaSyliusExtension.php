@@ -62,8 +62,9 @@ final class AlmaSyliusExtension extends AbstractResourceExtension implements Pre
         if (is_dir($hooksDir)) {
             foreach (Finder::create()->files()->in($hooksDir)->name('*.yaml') as $file) {
                 $parsed = Yaml::parseFile($file->getPathname());
-                if (isset($parsed['sylius_twig_hooks'])) {
-                    $container->prependExtensionConfig('sylius_twig_hooks', $parsed['sylius_twig_hooks']);
+                $hooks = \is_array($parsed) ? ($parsed['sylius_twig_hooks'] ?? null) : null;
+                if (\is_array($hooks)) {
+                    $container->prependExtensionConfig('sylius_twig_hooks', array_filter($hooks, 'is_string', \ARRAY_FILTER_USE_KEY));
                 }
             }
         }

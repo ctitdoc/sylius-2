@@ -8,6 +8,9 @@ use Alma\Sylius\Checkout\View\FeePlanGroupView;
 use Alma\Sylius\Checkout\View\FeePlanView;
 use Alma\Sylius\Eligibility\AlmaEligibility;
 
+/**
+ * @implementation [[payment-plan-choice]] — the eligible plans grouped for the checkout, with their schedule
+ */
 final class FeePlanGrouper
 {
     public function __construct(
