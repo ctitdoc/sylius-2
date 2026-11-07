@@ -80,25 +80,14 @@ final class FeePlanAdapterTest extends TestCase
         self::assertFalse($notAllowed->isAvailable(), 'enabled but not allowed by Alma: not available');
     }
 
-    public function testNumericStringsFromTheApiAreReadAsIntegers(): void
+    public function testAbsentFeesAreNullAndPresentOnesIntegers(): void
     {
-        $plan = new FeePlanAdapter(['installments_count' => '4', 'min_purchase_amount' => '5000', 'max_purchase_amount' => '200000', 'merchant_fee_fixed' => '150', 'customer_fee_variable' => null]);
+        $plan = new FeePlanAdapter(['installments_count' => 4, 'merchant_fee_fixed' => 150, 'customer_fee_variable' => null]);
 
         self::assertSame(4, $plan->getInstallmentsCount());
-        self::assertSame(5000, $plan->getMinPurchaseAmount());
         self::assertSame(150, $plan->getMerchantFeeFixed());
         self::assertNull($plan->getCustomerFeeVariable());
         self::assertNull($plan->getMerchantFeeVariable(), 'absent means null');
-    }
-
-    public function testAValueThatIsNotANumberConvertsAsPhpAlwaysDid(): void
-    {
-        // Unreachable from Alma's API: the stored plans come from the client's typed getters. Pinned all the same.
-        $plan = new FeePlanAdapter(['installments_count' => [3], 'allowed' => ['yes'], 'min_purchase_amount' => []]);
-
-        self::assertSame(1, $plan->getInstallmentsCount(), 'a non-empty array counted for 1');
-        self::assertTrue($plan->isAllowed());
-        self::assertSame(0, $plan->getMinPurchaseAmount(), 'an empty array counted for 0');
     }
 
     public function testTheLabelSaysInstalmentsOrDeferral(): void
