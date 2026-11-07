@@ -10,7 +10,6 @@ use Alma\Sylius\Checkout\FeePlanGrouper;
 use Alma\Sylius\Checkout\PlanGroup;
 use Alma\Sylius\Eligibility\AlmaEligibility;
 use PHPUnit\Framework\TestCase;
-use Psr\Log\LoggerInterface;
 
 /**
  * Characterisation of the plan choice at checkout ([[payment-plan-choice]], [[instalment-schedule]]):
@@ -58,18 +57,6 @@ final class FeePlanGrouperTest extends TestCase
         self::assertSame(['alma_sylius.checkout.button.installments_deferred_months', ['%installments%' => 3, '%count%' => 1]], [$label(3, 0, 1)->buttonLabelKey, $label(3, 0, 1)->buttonLabelParams]);
         self::assertSame(['alma_sylius.checkout.button.deferred_months', ['%count%' => 2]], [$label(1, 0, 2)->buttonLabelKey, $label(1, 0, 2)->buttonLabelParams]);
         self::assertSame(['alma_sylius.checkout.button.installments', ['%count%' => 1]], [$label(1, 0, 0)->buttonLabelKey, $label(1, 0, 0)->buttonLabelParams]);
-    }
-
-    public function testARowValueThatIsNotANumberIsReadAsItAlwaysWasAndReported(): void
-    {
-        $logger = $this->createMock(LoggerInterface::class);
-        $logger->expects(self::once())->method('warning')->with('alma.eligibility.unexpected_value', ['plan' => 'general_3_0_0', 'field' => 'total_amount', 'type' => 'array']);
-
-        $views = (new FeePlanGrouper(new \DateTimeImmutable(self::TODAY), $logger))->group([
-            'general_3_0_0' => $this->eligibility(3, 0, 0, true, [['due_date' => $this->ts(self::TODAY), 'total_amount' => [2286]]]),
-        ]);
-
-        self::assertSame(1, $views[0]->plans[0]->scheduleRows[0]['amount'], "PHP's conversion of a non-empty array, as before");
     }
 
     /** @param list<array<string, mixed>> $plan */

@@ -4,12 +4,9 @@ declare(strict_types=1);
 
 namespace Alma\Sylius\Checkout;
 
-use Alma\Sylius\Api\AlmaJsonValue;
 use Alma\Sylius\Checkout\View\FeePlanGroupView;
 use Alma\Sylius\Checkout\View\FeePlanView;
 use Alma\Sylius\Eligibility\AlmaEligibility;
-use Psr\Log\LoggerInterface;
-use Psr\Log\NullLogger;
 
 /**
  * @implementation [[payment-plan-choice]] — the eligible plans grouped for the checkout, with their schedule
@@ -18,7 +15,6 @@ final class FeePlanGrouper
 {
     public function __construct(
         private readonly ?\DateTimeImmutable $today = null,
-        private readonly LoggerInterface $logger = new NullLogger(),
     ) {
     }
 
@@ -64,13 +60,12 @@ final class FeePlanGrouper
         $rows = [];
         $total = 0;
         foreach ($eligibility->getPaymentPlan() as $installment) {
-            $planKey = $eligibility->getPlanKey();
             $amount = isset($installment['total_amount'])
-                ? $this->int($installment['total_amount'], 'total_amount', $planKey)
-                : $this->int($installment['purchase_amount'] ?? 0, 'purchase_amount', $planKey)
-                    + $this->int($installment['customer_fee'] ?? 0, 'customer_fee', $planKey)
-                    + $this->int($installment['customer_interest'] ?? 0, 'customer_interest', $planKey);
-            $dueDate = isset($installment['due_date']) ? $this->int($installment['due_date'], 'due_date', $planKey) : null;
+                ? (int) $installment['total_amount']
+                : (int) ($installment['purchase_amount'] ?? 0)
+                    + (int) ($installment['customer_fee'] ?? 0)
+                    + (int) ($installment['customer_interest'] ?? 0);
+            $dueDate = isset($installment['due_date']) ? (int) $installment['due_date'] : null;
             $isToday = null !== $dueDate &&
                 (new \DateTimeImmutable('@' . $dueDate))->setTimezone($timezone)->format('Y-m-d') === $todayDate;
 
@@ -91,24 +86,6 @@ final class FeePlanGrouper
     /**
      * @return array{string, array<string, int>}
      */
-    /**
-     * A number of a schedule row, as Alma's answer gives it. The reference announces integers; the
-     * plugin cannot ascertain it (question to Alma's engineering team, workspace README), so it
-     * converts as PHP always did and reports what the reference never announced.
-     */
-    private function int(mixed $value, string $field, string $planKey): int
-    {
-        if (AlmaJsonValue::isUnexpected($value)) {
-            $this->logger->warning('alma.eligibility.unexpected_value', [
-                'plan' => $planKey,
-                'field' => $field,
-                'type' => get_debug_type($value),
-            ]);
-        }
-
-        return AlmaJsonValue::int($value);
-    }
-
     private function buttonLabel(AlmaEligibility $eligibility): array
     {
         $installments = $eligibility->getInstallmentsCount();

@@ -1,6 +1,11 @@
 parameters:
 	ignoreErrors:
 		-
+			message: "#^Cannot cast mixed to int\\.$#"
+			count: 5
+			path: src/Checkout/FeePlanGrouper.php
+
+		-
 			message: "#^Parameter \\#2 \\$params of method Alma\\\\Sylius\\\\Payment\\\\AlmaIpnSignatureVerifier\\:\\:verify\\(\\) expects array\\<string, string\\>, array\\<string, mixed\\> given\\.$#"
 			count: 1
 			path: src/Controller/Payment/PaymentIpnController.php

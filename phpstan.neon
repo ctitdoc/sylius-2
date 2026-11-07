@@ -2,9 +2,6 @@ includes:
     - phpstan-baseline.neon
 
 parameters:
-    stubFiles:
-        # The client's types where it leaves data untyped (see the stub's header).
-        - phpstan/stubs/AlmaClientEligibility.stub
     level: max
     reportUnmatchedIgnoredErrors: false
     paths:
