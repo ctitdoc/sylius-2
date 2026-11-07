@@ -6,13 +6,11 @@ namespace Tests\Alma\Sylius\Unit\Eligibility;
 
 use Alma\Client\Application\DTO\EligibilityDto;
 use Alma\Client\Application\Endpoint\EligibilityEndpoint;
-use Alma\Client\Application\Exception\Endpoint\EligibilityEndpointException;
 use Alma\Client\Domain\Entity\Eligibility;
 use Alma\Client\Domain\Entity\EligibilityList;
 use Alma\Sylius\Api\EligibilityEndpointFactoryInterface;
 use Alma\Sylius\Api\FeePlanAdapterCollectionBuilder;
 use Alma\Sylius\Eligibility\EligibilityFetcher;
-use Alma\Sylius\Eligibility\EligibilityFetchFailedException;
 use Alma\Sylius\Eligibility\FeePlanCandidateProvider;
 use Alma\Sylius\Entity\AlmaConfiguration;
 use PHPUnit\Framework\TestCase;
@@ -22,7 +20,9 @@ use Psr\Log\NullLogger;
 /**
  * Characterisation of the eligibility check ([[eligibility-check]], [[eligibility]]): the Shop asks
  * Alma for the eligibility of an amount to the active plans only, with the key of the active mode,
- * and keeps Alma's answer for the plans it asked about.
+ * and keeps Alma's answer for the plans it asked about. Pruned on 7 November 2026 (practices, "what a
+ * unit test keeps"): the translation of an Alma failure into an exception — the Term's sentence, "if
+ * Alma cannot be reached, no plan is eligible", belongs to the eligibility provider, not to this brick.
  *
  * @implementation [[eligibility-check]]
  */
@@ -84,19 +84,6 @@ final class EligibilityFetcherTest extends TestCase
         self::assertSame(['general_3_0_0', 'general_1_15_0'], array_keys($result));
         self::assertTrue($result['general_3_0_0']->isEligible());
         self::assertFalse($result['general_1_15_0']->isEligible(), "Alma's refusal is kept as such");
-    }
-
-    public function testAnAlmaFailureBecomesAFetchFailure(): void
-    {
-        $endpoint = $this->createMock(EligibilityEndpoint::class);
-        $endpoint->method('getEligibilityList')->willThrowException(new EligibilityEndpointException('Alma is down'));
-        $factory = $this->createMock(EligibilityEndpointFactoryInterface::class);
-        $factory->method('make')->willReturn($endpoint);
-
-        $this->expectException(EligibilityFetchFailedException::class);
-        $this->expectExceptionMessage('Alma is down');
-
-        $this->fetcher($factory)->fetch($this->configuration('test', enabled: ['general_3_0_0']), 6856);
     }
 
     public function testTheScheduleRowsBecomePendingInstalmentsTypedByTheClient(): void

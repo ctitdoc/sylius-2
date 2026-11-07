@@ -23,7 +23,9 @@ use Symfony\Component\HttpFoundation\Request;
  * Characterisation of the server-to-server notification ([[payment-notification]], a GET with the
  * payment id and the signature in the query, as Alma sends it): refused before
  * anything is read unless signed ([[notification-is-signed]]); then the payment is read back from
- * Alma, checked against the order ([[payment-matches-order]]) and completed.
+ * Alma, checked against the order ([[payment-matches-order]]) and completed. Pruned on 7 November 2026
+ * (practices, "what a unit test keeps"): a notification without payment id, a case the Term does not
+ * describe — Alma always sends the identifier.
  *
  * @implementation [[payment-notification]]
  */
@@ -66,17 +68,6 @@ final class PaymentIpnControllerTest extends TestCase
         $response = $this->controller()($this->signed('bad', ['pid' => 'payment_x', 'signature' => 'bad']));
 
         self::assertSame(401, $response->getStatusCode());
-    }
-
-    public function testASignedNotificationWithoutPaymentIdIsAcknowledgedAndIgnored(): void
-    {
-        $this->verifier->method('verify')->willReturn(true);
-        $this->resolver->expects(self::never())->method('resolve');
-
-        $response = $this->controller()($this->signed('ok', []));
-
-        self::assertSame(200, $response->getStatusCode());
-        self::assertSame('{"status":"ok","pid":null}', $response->getContent());
     }
 
     public function testAnUnknownPaymentIsNotFound(): void
