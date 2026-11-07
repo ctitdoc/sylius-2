@@ -196,30 +196,29 @@ final class FeePlanAdapter implements FeePlanInterface, FeePlanAdapterInterface,
 
     private function intOrNull(mixed $value): ?int
     {
-        return \is_scalar($value) ? (int) $value : null;
+        return $value === null ? null : AlmaJsonValue::int($value);
     }
 
-    /** @param array<string, mixed> $data A scalar reads as an integer, as Alma's JSON gives numbers or numeric strings; anything else is the default. */
+    /**
+     * The stored plans come from the typed getters of the client's FeePlan entity (FeePlansFetcher), so these
+     * reads only ever meet integers, booleans and strings; the conversions stay PHP's, as they were.
+     *
+     * @param array<string, mixed> $data
+     */
     private function int(array $data, string $key, int $default): int
     {
-        $value = $data[$key] ?? null;
-
-        return \is_scalar($value) ? (int) $value : $default;
+        return isset($data[$key]) ? AlmaJsonValue::int($data[$key]) : $default;
     }
 
     /** @param array<string, mixed> $data */
     private function bool(array $data, string $key, bool $default): bool
     {
-        $value = $data[$key] ?? null;
-
-        return \is_scalar($value) ? (bool) $value : $default;
+        return isset($data[$key]) ? AlmaJsonValue::bool($data[$key]) : $default;
     }
 
     /** @param array<string, mixed> $data */
     private function string(array $data, string $key, string $default): string
     {
-        $value = $data[$key] ?? null;
-
-        return \is_scalar($value) ? (string) $value : $default;
+        return isset($data[$key]) ? AlmaJsonValue::string($data[$key]) : $default;
     }
 }

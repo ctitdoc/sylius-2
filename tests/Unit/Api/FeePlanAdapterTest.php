@@ -91,6 +91,16 @@ final class FeePlanAdapterTest extends TestCase
         self::assertNull($plan->getMerchantFeeVariable(), 'absent means null');
     }
 
+    public function testAValueThatIsNotANumberConvertsAsPhpAlwaysDid(): void
+    {
+        // Unreachable from Alma's API: the stored plans come from the client's typed getters. Pinned all the same.
+        $plan = new FeePlanAdapter(['installments_count' => [3], 'allowed' => ['yes'], 'min_purchase_amount' => []]);
+
+        self::assertSame(1, $plan->getInstallmentsCount(), 'a non-empty array counted for 1');
+        self::assertTrue($plan->isAllowed());
+        self::assertSame(0, $plan->getMinPurchaseAmount(), 'an empty array counted for 0');
+    }
+
     public function testTheLabelSaysInstalmentsOrDeferral(): void
     {
         self::assertSame('Paiement en 3×', (new FeePlanAdapter(self::ALMA_3X))->getLabel());
