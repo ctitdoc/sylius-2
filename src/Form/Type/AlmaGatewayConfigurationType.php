@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Alma\Sylius\Form\Type;
 
+use Alma\Sylius\Api\AlmaJsonValue;
 use Alma\Sylius\Api\ApiKeyValidationError;
 use Alma\Sylius\Api\ApiKeyValidationResult;
 use Alma\Sylius\Api\ApiKeyValidator;
@@ -316,10 +317,10 @@ final class AlmaGatewayConfigurationType extends AbstractType
         return \is_string($value) && $value !== '' ? $value : null;
     }
 
-    /** Alma's JSON gives numbers or numeric strings; anything else counts for nothing. */
+    /** A number of a stored plan, converted as PHP always did (AlmaJsonValue). */
     private function int(mixed $value): int
     {
-        return \is_scalar($value) ? (int) $value : 0;
+        return AlmaJsonValue::int($value);
     }
 
     /** A field's data as trimmed text; anything not scalar is empty. */
