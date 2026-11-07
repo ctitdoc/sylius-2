@@ -23,10 +23,14 @@ use Alma\Sylius\Api\FeePlanAdapter;
  */
 class AlmaEligibility
 {
+    /**
+     * @param list<ForecastInstalment> $installments the forecast schedule (EligibilityFetcher builds it)
+     */
     public function __construct(
         private readonly string $planKey,
         private readonly FeePlanAdapter $local,
         private readonly AlmaResponseEligibility $remote,
+        private readonly array $installments = [],
     ) {
     }
 
@@ -86,11 +90,14 @@ class AlmaEligibility
     }
 
     /**
-     * @return array<int, array<string, mixed>>
+     * The forecast schedule ([[instalment-schedule]]): one instalment per row of Alma's answer, every
+     * one `pending` since nothing is paid yet, typed by the client's entity rather than read raw.
+     *
+     * @return list<ForecastInstalment>
      */
-    public function getPaymentPlan(): array
+    public function getInstallments(): array
     {
-        return $this->remote->getPaymentPlan();
+        return $this->installments;
     }
 
     /**

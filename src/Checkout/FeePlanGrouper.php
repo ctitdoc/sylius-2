@@ -59,16 +59,11 @@ final class FeePlanGrouper
 
         $rows = [];
         $total = 0;
-        foreach ($eligibility->getPaymentPlan() as $installment) {
-            $amount = isset($installment['total_amount'])
-                ? (int) $installment['total_amount']
-                : (int) ($installment['purchase_amount'] ?? 0)
-                    + (int) ($installment['customer_fee'] ?? 0)
-                    + (int) ($installment['customer_interest'] ?? 0);
-            $dueDate = isset($installment['due_date']) ? (int) $installment['due_date'] : null;
-            $isToday = null !== $dueDate &&
-                (new \DateTimeImmutable('@' . $dueDate))->setTimezone($timezone)->format('Y-m-d') === $todayDate;
-
+        foreach ($eligibility->getInstallments() as $installment) {
+            // What Alma announces for the instalment, checked by the fetcher against share plus fees plus interest.
+            $amount = $installment->amount;
+            $dueDate = $installment->getDueDate();
+            $isToday = (new \DateTimeImmutable('@' . $dueDate))->setTimezone($timezone)->format('Y-m-d') === $todayDate;
             $rows[] = ['isToday' => $isToday, 'dueDate' => $dueDate, 'amount' => $amount];
             $total += $amount;
         }

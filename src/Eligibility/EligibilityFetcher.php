@@ -9,7 +9,9 @@ use Alma\Client\Application\DTO\EligibilityDto;
 use Alma\Client\Application\DTO\EligibilityQueryDto;
 use Alma\Client\Application\DTO\PaymentDto;
 use Alma\Client\Application\Exception\Endpoint\EligibilityEndpointException;
+use Alma\Client\Application\Exception\ParametersException;
 use Alma\Client\Domain\Entity\Eligibility as AlmaResponseEligibility;
+use Alma\Client\Domain\Entity\Installment;
 use Alma\Sylius\Api\EligibilityEndpointFactoryInterface;
 use Alma\Sylius\Api\FeePlanAdapter;
 use Alma\Sylius\Entity\AlmaConfiguration;
@@ -35,6 +37,9 @@ use Psr\Log\NullLogger;
  */
 class EligibilityFetcher
 {
+    /** The only state a forecast instalment can have; Alma's eligibility rows carry none. */
+    private const FORECAST_STATE = 'pending';
+
     public function __construct(
         private readonly FeePlanCandidateProvider $candidateProvider,
         private readonly EligibilityEndpointFactoryInterface $endpointFactory,
@@ -106,10 +111,47 @@ class EligibilityFetcher
             if ($local === null) {
                 continue;
             }
-            $result[$planKey] = new AlmaEligibility($planKey, $local, $remote);
+            $result[$planKey] = new AlmaEligibility($planKey, $local, $remote, $this->installments($remote, $planKey));
         }
 
         return $result;
+    }
+
+    /**
+     * The schedule rows of an eligibility answer, which the client returns raw (unlike a Payment's),
+     * wrapped in its Installment entity with `state: pending` — a forecast schedule has no other
+     * state — so that its typed properties do the typing. The amount shown to the Buyer is the
+     * `total_amount` Alma announces, as it always was, checked against share plus fees plus
+     * interest; a difference is reported, as is a row the client rejects, which is skipped.
+     *
+     * @return list<ForecastInstalment>
+     */
+    private function installments(AlmaResponseEligibility $remote, string $planKey): array
+    {
+        $installments = [];
+        foreach ($remote->getPaymentPlan() as $index => $row) {
+            if (!\is_array($row)) {
+                $this->logger->warning('alma.eligibility.row_rejected', ['plan' => $planKey, 'row' => $index, 'reason' => 'not an object']);
+
+                continue;
+            }
+
+            try {
+                $installment = new Installment($row + ['state' => self::FORECAST_STATE]);
+            } catch (ParametersException|\TypeError $e) {
+                $this->logger->warning('alma.eligibility.row_rejected', ['plan' => $planKey, 'row' => $index, 'reason' => $e->getMessage()]);
+
+                continue;
+            }
+            $sum = $installment->getPurchaseAmount() + $installment->getCustomerFee() + $installment->getCustomerInterest();
+            $announced = \is_int($row['total_amount'] ?? null) ? $row['total_amount'] : null;
+            if (null !== $announced && $announced !== $sum) {
+                $this->logger->warning('alma.eligibility.total_amount_mismatch', ['plan' => $planKey, 'row' => $index, 'total_amount' => $announced, 'sum' => $sum]);
+            }
+            $installments[] = new ForecastInstalment($installment, $announced ?? $sum);
+        }
+
+        return $installments;
     }
 
     private function buildQuery(FeePlanAdapter $adapter): EligibilityQueryDto
