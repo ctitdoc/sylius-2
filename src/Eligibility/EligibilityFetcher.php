@@ -9,6 +9,7 @@ use Alma\Client\Application\DTO\EligibilityDto;
 use Alma\Client\Application\DTO\EligibilityQueryDto;
 use Alma\Client\Application\DTO\PaymentDto;
 use Alma\Client\Application\Exception\Endpoint\EligibilityEndpointException;
+use Alma\Client\Domain\Entity\Eligibility as AlmaResponseEligibility;
 use Alma\Sylius\Api\EligibilityEndpointFactoryInterface;
 use Alma\Sylius\Api\FeePlanAdapter;
 use Alma\Sylius\Entity\AlmaConfiguration;
@@ -28,6 +29,9 @@ use Psr\Log\NullLogger;
  *   - uses the active-mode API key (cf. Module Configuration);
  *   - returns the eligibility result as plugin-side adapters, never as raw
  *     PHP client objects.
+ */
+/**
+ * @implementation [[eligibility-check]] — asks Alma for the eligibility of an amount to the active plans, with the key of the active mode
  */
 class EligibilityFetcher
 {
@@ -88,6 +92,9 @@ class EligibilityFetcher
 
         $result = [];
         foreach ($remoteList as $remote) {
+            if (!$remote instanceof AlmaResponseEligibility) {
+                continue;
+            }
             $planKey = sprintf(
                 '%s_%d_%d_%d',
                 $remote->getKind(),
