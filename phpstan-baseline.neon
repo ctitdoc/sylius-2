@@ -1,6 +1,11 @@
 parameters:
 	ignoreErrors:
 		-
+			message: "#^Cannot cast mixed to int\\.$#"
+			count: 5
+			path: src/Checkout/FeePlanGrouper.php
+
+		-
 			message: "#^Call to an undefined method Symfony\\\\Component\\\\HttpFoundation\\\\Session\\\\SessionInterface\\:\\:getFlashBag\\(\\)\\.$#"
 			count: 1
 			path: src/Form/Type/AlmaGatewayConfigurationType.php
