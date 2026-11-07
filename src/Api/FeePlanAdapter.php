@@ -9,6 +9,14 @@ use Alma\Plugin\Infrastructure\Adapter\FeePlanAdapterLocalConfigurationAwareInte
 use Alma\Plugin\Infrastructure\Adapter\FeePlanInterface;
 
 /**
+ * A plan as the plugin sees it: Alma's data for the plan plus the Merchant's override. Alma's data
+ * is scalar by construction — FeePlansFetcher writes it from the typed getters of the client's
+ * FeePlan entity, whose typed properties reject anything else — and the override is written by the
+ * configuration form; the shapes below say so, and the reads need no conversion.
+ *
+ * @phpstan-type StoredPlan array{kind?: string, installments_count?: int, deferred_days?: int, deferred_months?: int, allowed?: bool, min_purchase_amount?: int, max_purchase_amount?: int, merchant_fee_fixed?: int|null, merchant_fee_variable?: int|null, customer_fee_variable?: int|null}
+ * @phpstan-type PlanOverride array{enabled?: bool, override_min_purchase_amount?: int|null, override_max_purchase_amount?: int|null}
+ *
  * @implementation [[sylius-plugin-commons.md#fee-plans]] — a plan as the plugin sees it: Alma's data plus the Merchant's override
  */
 final class FeePlanAdapter implements FeePlanInterface, FeePlanAdapterInterface, FeePlanAdapterLocalConfigurationAwareInterface
@@ -19,8 +27,8 @@ final class FeePlanAdapter implements FeePlanInterface, FeePlanAdapterInterface,
      *                                         may be empty when no override is set
      */
     /**
-     * @param array<string, mixed> $apiData Alma's data for the plan, as its JSON gives it
-     * @param array<string, mixed> $override the Merchant's override: enabled, narrower bounds
+     * @param StoredPlan $apiData
+     * @param PlanOverride $override
      */
     public function __construct(
         private readonly array $apiData,
@@ -41,7 +49,7 @@ final class FeePlanAdapter implements FeePlanInterface, FeePlanAdapterInterface,
 
     public function isAllowed(): bool
     {
-        return $this->bool($this->apiData, 'allowed', false);
+        return $this->apiData['allowed'] ?? false;
     }
 
     public function isEligible(int $purchaseAmount): bool
@@ -112,42 +120,42 @@ final class FeePlanAdapter implements FeePlanInterface, FeePlanAdapterInterface,
 
     public function isEnabled(): bool
     {
-        return $this->bool($this->override, 'enabled', false);
+        return $this->override['enabled'] ?? false;
     }
 
     public function getDeferredDays(): int
     {
-        return $this->int($this->apiData, 'deferred_days', 0);
+        return $this->apiData['deferred_days'] ?? 0;
     }
 
     public function getDeferredMonths(): int
     {
-        return $this->int($this->apiData, 'deferred_months', 0);
+        return $this->apiData['deferred_months'] ?? 0;
     }
 
     public function getInstallmentsCount(): int
     {
-        return $this->int($this->apiData, 'installments_count', 1);
+        return $this->apiData['installments_count'] ?? 1;
     }
 
     public function getMerchantFeeFixed(): ?int
     {
-        return $this->intOrNull($this->apiData['merchant_fee_fixed'] ?? null);
+        return $this->apiData['merchant_fee_fixed'] ?? null;
     }
 
     public function getMerchantFeeVariable(): ?int
     {
-        return $this->intOrNull($this->apiData['merchant_fee_variable'] ?? null);
+        return $this->apiData['merchant_fee_variable'] ?? null;
     }
 
     public function getCustomerFeeVariable(): ?int
     {
-        return $this->intOrNull($this->apiData['customer_fee_variable'] ?? null);
+        return $this->apiData['customer_fee_variable'] ?? null;
     }
 
     public function getKind(): string
     {
-        return $this->string($this->apiData, 'kind', 'general');
+        return $this->apiData['kind'] ?? 'general';
     }
 
     public function getLabel(): string
@@ -164,12 +172,12 @@ final class FeePlanAdapter implements FeePlanInterface, FeePlanAdapterInterface,
 
     public function getApiMinPurchaseAmount(): int
     {
-        return $this->int($this->apiData, 'min_purchase_amount', 0);
+        return $this->apiData['min_purchase_amount'] ?? 0;
     }
 
     public function getApiMaxPurchaseAmount(): int
     {
-        return $this->int($this->apiData, 'max_purchase_amount', 0);
+        return $this->apiData['max_purchase_amount'] ?? 0;
     }
 
     /**
@@ -179,6 +187,7 @@ final class FeePlanAdapter implements FeePlanInterface, FeePlanAdapterInterface,
      *
      * @return array<string, mixed>
      */
+    /** @return PlanOverride */
     public function getOverrideData(): array
     {
         return $this->override;
@@ -186,39 +195,11 @@ final class FeePlanAdapter implements FeePlanInterface, FeePlanAdapterInterface,
 
     private function effectiveMin(): int
     {
-        return $this->int($this->override, 'override_min_purchase_amount', $this->getApiMinPurchaseAmount());
+        return $this->override['override_min_purchase_amount'] ?? $this->getApiMinPurchaseAmount();
     }
 
     private function effectiveMax(): int
     {
-        return $this->int($this->override, 'override_max_purchase_amount', $this->getApiMaxPurchaseAmount());
-    }
-
-    private function intOrNull(mixed $value): ?int
-    {
-        return $value === null ? null : AlmaJsonValue::int($value);
-    }
-
-    /**
-     * The stored plans come from the typed getters of the client's FeePlan entity (FeePlansFetcher), so these
-     * reads only ever meet integers, booleans and strings; the conversions stay PHP's, as they were.
-     *
-     * @param array<string, mixed> $data
-     */
-    private function int(array $data, string $key, int $default): int
-    {
-        return isset($data[$key]) ? AlmaJsonValue::int($data[$key]) : $default;
-    }
-
-    /** @param array<string, mixed> $data */
-    private function bool(array $data, string $key, bool $default): bool
-    {
-        return isset($data[$key]) ? AlmaJsonValue::bool($data[$key]) : $default;
-    }
-
-    /** @param array<string, mixed> $data */
-    private function string(array $data, string $key, string $default): string
-    {
-        return isset($data[$key]) ? AlmaJsonValue::string($data[$key]) : $default;
+        return $this->override['override_max_purchase_amount'] ?? $this->getApiMaxPurchaseAmount();
     }
 }

@@ -7,6 +7,7 @@ namespace Alma\Sylius\Api;
 use Alma\Client\Application\Exception\Endpoint\MerchantEndpointException;
 use Alma\Client\Domain\Entity\FeePlan;
 
+/** @phpstan-import-type StoredPlan from FeePlanAdapter */
 class FeePlansFetcher
 {
     public function __construct(
@@ -15,7 +16,7 @@ class FeePlansFetcher
     }
 
     /**
-     * @return array<string, array<string, mixed>>
+     * @return array<string, StoredPlan> plan key → Alma's data, from the client's typed getters
      *
      * @throws FeePlansFetchFailedException
      */
