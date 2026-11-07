@@ -115,9 +115,10 @@ final class EligibilityFetcherTest extends TestCase
         $instalments = $result['general_3_0_0']->getInstallments();
 
         self::assertCount(2, $instalments);
-        self::assertSame(2286, $instalments[0]->getPurchaseAmount(), 'a numeric string, typed to int by the client');
+        self::assertSame(2286, $instalments[0]->installment->getPurchaseAmount(), 'a numeric string, typed to int by the client');
         self::assertSame(1762473600, $instalments[0]->getDueDate());
-        self::assertSame('pending', $instalments[0]->getState(), 'a forecast instalment has no other state');
+        self::assertSame('pending', $instalments[0]->installment->getState(), 'a forecast instalment has no other state');
+        self::assertSame(2286, $instalments[0]->amount, "the amount shown is Alma's total_amount");
     }
 
     public function testARowTheClientRejectsIsSkippedAndReportedAndAMismatchedTotalIsReported(): void
@@ -138,7 +139,9 @@ final class EligibilityFetcherTest extends TestCase
 
         $result = $this->fetcher($factory, $logger)->fetch($this->configuration('test', enabled: ['general_3_0_0']), 6856);
 
-        self::assertCount(1, $result['general_3_0_0']->getInstallments(), 'the two rejected rows are skipped, the third kept');
+        $kept = $result['general_3_0_0']->getInstallments();
+        self::assertCount(1, $kept, 'the two rejected rows are skipped, the third kept');
+        self::assertSame(2290, $kept[0]->amount, "Alma's total_amount is shown as it always was, the difference reported");
         self::assertSame([
             ['alma.eligibility.row_rejected', 0],
             ['alma.eligibility.row_rejected', 1],

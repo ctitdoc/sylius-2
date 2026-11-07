@@ -120,11 +120,11 @@ class EligibilityFetcher
     /**
      * The schedule rows of an eligibility answer, which the client returns raw (unlike a Payment's),
      * wrapped in its Installment entity with `state: pending` — a forecast schedule has no other
-     * state — so that its typed properties do the typing. A row the client rejects is skipped and
-     * reported; a `total_amount` that differs from purchase amount plus fees plus interest is
-     * reported. Question 1 to Alma's engineering team, workspace README.
+     * state — so that its typed properties do the typing. The amount shown to the Buyer is the
+     * `total_amount` Alma announces, as it always was, checked against share plus fees plus
+     * interest; a difference is reported, as is a row the client rejects, which is skipped.
      *
-     * @return list<Installment>
+     * @return list<ForecastInstalment>
      */
     private function installments(AlmaResponseEligibility $remote, string $planKey): array
     {
@@ -144,10 +144,11 @@ class EligibilityFetcher
                 continue;
             }
             $sum = $installment->getPurchaseAmount() + $installment->getCustomerFee() + $installment->getCustomerInterest();
-            if (isset($row['total_amount']) && $row['total_amount'] !== $sum) {
-                $this->logger->warning('alma.eligibility.total_amount_mismatch', ['plan' => $planKey, 'row' => $index, 'total_amount' => $row['total_amount'], 'sum' => $sum]);
+            $announced = \is_int($row['total_amount'] ?? null) ? $row['total_amount'] : null;
+            if (null !== $announced && $announced !== $sum) {
+                $this->logger->warning('alma.eligibility.total_amount_mismatch', ['plan' => $planKey, 'row' => $index, 'total_amount' => $announced, 'sum' => $sum]);
             }
-            $installments[] = $installment;
+            $installments[] = new ForecastInstalment($installment, $announced ?? $sum);
         }
 
         return $installments;

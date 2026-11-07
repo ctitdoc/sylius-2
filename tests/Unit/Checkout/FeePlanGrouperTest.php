@@ -10,12 +10,13 @@ use Alma\Sylius\Api\FeePlanAdapter;
 use Alma\Sylius\Checkout\FeePlanGrouper;
 use Alma\Sylius\Checkout\PlanGroup;
 use Alma\Sylius\Eligibility\AlmaEligibility;
+use Alma\Sylius\Eligibility\ForecastInstalment;
 use PHPUnit\Framework\TestCase;
 
 /**
  * Characterisation of the plan choice at checkout ([[payment-plan-choice]], [[instalment-schedule]]):
  * the eligible plans are grouped — pay now, instalments, deferred, credit — each with its button label
- * and its schedule rows, each row the sum the Term defines; the ineligible ones are left out.
+ * and its schedule rows, each row the amount Alma announces; the ineligible ones are left out.
  *
  * @implementation [[payment-plan-choice]]
  */
@@ -60,7 +61,7 @@ final class FeePlanGrouperTest extends TestCase
         self::assertSame(['alma_sylius.checkout.button.installments', ['%count%' => 1]], [$label(1, 0, 0)->buttonLabelKey, $label(1, 0, 0)->buttonLabelParams]);
     }
 
-    /** @param list<array<string, int>> $plan rows as the sandbox gives them: due_date, purchase_amount, customer_fee, customer_interest (total_amount optional) */
+    /** @param list<array<string, int>> $plan rows as the sandbox gives them: due_date, purchase_amount (customer_fee, customer_interest, total_amount optional) */
     private function eligibility(int $installments, int $days, int $months, bool $eligible, array $plan): AlmaEligibility
     {
         $data = ['eligible' => $eligible, 'installments_count' => $installments, 'deferred_days' => $days, 'deferred_months' => $months];
@@ -68,7 +69,11 @@ final class FeePlanGrouperTest extends TestCase
             ? ['customer_fee' => 0, 'customer_total_cost_amount' => 0, 'customer_total_cost_bps' => 0, 'payment_plan' => $plan, 'annual_interest_rate' => 0]
             : ['constraints' => [], 'reasons' => ['purchase_amount' => 'too_low']];
         $key = sprintf('general_%d_%d_%d', $installments, $days, $months);
-        $typed = array_map(static fn (array $row): Installment => new Installment($row + ['customer_fee' => 0, 'customer_interest' => 0, 'state' => 'pending']), $plan);
+        $typed = array_map(static function (array $row): ForecastInstalment {
+            $installment = new Installment($row + ['customer_fee' => 0, 'customer_interest' => 0, 'state' => 'pending']);
+
+            return new ForecastInstalment($installment, $row['total_amount'] ?? $installment->getPurchaseAmount() + $installment->getCustomerFee() + $installment->getCustomerInterest());
+        }, $plan);
 
         return new AlmaEligibility($key, new FeePlanAdapter(['installments_count' => $installments, 'deferred_days' => $days, 'deferred_months' => $months]), new Eligibility($data), $typed);
     }
