@@ -9,7 +9,9 @@ use Alma\Client\Application\DTO\EligibilityDto;
 use Alma\Client\Application\DTO\EligibilityQueryDto;
 use Alma\Client\Application\DTO\PaymentDto;
 use Alma\Client\Application\Exception\Endpoint\EligibilityEndpointException;
+use Alma\Client\Application\Exception\ParametersException;
 use Alma\Client\Domain\Entity\Eligibility as AlmaResponseEligibility;
+use Alma\Client\Domain\Entity\Installment;
 use Alma\Sylius\Api\EligibilityEndpointFactoryInterface;
 use Alma\Sylius\Api\FeePlanAdapter;
 use Alma\Sylius\Entity\AlmaConfiguration;
@@ -106,10 +108,43 @@ class EligibilityFetcher
             if ($local === null) {
                 continue;
             }
-            $result[$planKey] = new AlmaEligibility($planKey, $local, $remote);
+            $result[$planKey] = new AlmaEligibility($planKey, $local, $remote, $this->installments($remote, $planKey));
         }
 
         return $result;
+    }
+
+    /**
+     * The forecast schedule of an eligibility answer ([[instalment-schedule]]), typed by the client:
+     * `Eligibility::getInstallments()` gives one Installment per row, in the state `forecast` — a
+     * schedule that is not a payment's yet has no other. The amount shown to the Buyer is
+     * `Installment::getTotalAmount()`, Alma's `total_amount` as it always was: the backend is the
+     * master of the data, and a difference with share plus fees plus interest is reported, never
+     * corrected. A schedule the client rejects (a row missing a required field) is reported and the
+     * plan is shown without its rows.
+     *
+     * @return list<Installment>
+     */
+    private function installments(AlmaResponseEligibility $remote, string $planKey): array
+    {
+        try {
+            /** @var iterable<Installment> $plan */
+            $plan = $remote->getInstallments();
+        } catch (ParametersException|\TypeError $e) {
+            $this->logger->warning('alma.eligibility.schedule_rejected', ['plan' => $planKey, 'reason' => $e->getMessage()]);
+
+            return [];
+        }
+
+        $installments = [];
+        foreach ($plan as $index => $installment) {
+            if (!$installment->hasConsistentTotalAmount()) {
+                $this->logger->warning('alma.eligibility.total_amount_mismatch', ['plan' => $planKey, 'row' => $index, 'total_amount' => $installment->getTotalAmount(), 'sum' => $installment->getComputedTotalAmount()]);
+            }
+            $installments[] = $installment;
+        }
+
+        return $installments;
     }
 
     private function buildQuery(FeePlanAdapter $adapter): EligibilityQueryDto
