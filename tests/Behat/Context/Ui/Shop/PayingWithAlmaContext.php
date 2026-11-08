@@ -121,14 +121,24 @@ final class PayingWithAlmaContext extends RawMinkContext
             if (!\is_string($location) || '' === $location || $response->getStatusCode() < 300 || $response->getStatusCode() >= 400) {
                 throw new \RuntimeException(sprintf('No redirect to Alma: status %d, %s', $response->getStatusCode(), mb_substr(strip_tags($response->getContent()), 0, 300)));
             }
-            $host = parse_url($location, \PHP_URL_HOST);
-            $shopHost = parse_url($client->getInternalRequest()->getUri(), \PHP_URL_HOST);
-            if (\is_string($host) && $host !== $shopHost) {
+            // Outside the Shop means another origin: host *and* port — in CI the mock and the Shop share 127.0.0.1.
+            if (null !== self::origin($location) && self::origin($location) !== self::origin($client->getInternalRequest()->getUri())) {
                 return $location;
             }
             $client->followRedirect();
         }
 
         throw new \RuntimeException('Too many redirects inside the Shop');
+    }
+
+    /** scheme, host and port of an absolute URL; null for a relative one */
+    private static function origin(string $url): ?string
+    {
+        $parts = parse_url($url);
+        if (!\is_array($parts) || !isset($parts['host'])) {
+            return null;
+        }
+
+        return sprintf('%s://%s:%d', $parts['scheme'] ?? 'http', $parts['host'], $parts['port'] ?? ('https' === ($parts['scheme'] ?? 'http') ? 443 : 80));
     }
 }
