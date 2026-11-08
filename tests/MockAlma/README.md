@@ -11,6 +11,11 @@ transport.
 - In CI: started with uvicorn before the non-unit tests (`.github/workflows/build.yaml`), at
   `http://127.0.0.1:8000`.
 - The plugin is pointed at it by `ALMA_API_URL`, which puts the client in its custom environment
-  whatever the configured mode.
+  **whatever the Merchant configuration's mode, test or live**: the mode then only selects which of
+  the two stored keys is sent, and the mock accepts both. One run has one target — the mock or
+  Alma; the two do not coexist in a run. The compose override sets the variable for every run of
+  the fork; to reach Alma's sandbox or live API by the configured mode, start the services with
+  it empty (`ALMA_API_URL= docker compose up -d`) — the demo shop of the workspace does the
+  reverse, sandbox by default and the mock on demand.
 
 Every API key of the form `sk_test_…` / `sk_live_…` of eight characters or more is accepted.

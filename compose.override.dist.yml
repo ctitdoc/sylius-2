@@ -18,8 +18,11 @@ services:
             SYLIUS_MESSENGER_TRANSPORT_CATALOG_PROMOTION_REMOVAL_FAILED_DSN: doctrine://default?queue_name=catalog_promotion_removal_failed
             SYLIUS_MESSENGER_TRANSPORT_PAYMENT_REQUEST_DSN: sync://
             SYLIUS_MESSENGER_TRANSPORT_PAYMENT_REQUEST_FAILED_DSN: sync://
-            # The plugin talks to the Alma mock (tests/MockAlma) instead of Alma's API
-            ALMA_API_URL: http://alma-mock:8000
+            # The plugin talks to the Alma mock (tests/MockAlma) instead of Alma's API, whatever the
+            # Merchant configuration's mode (test or live): the client is put in its custom environment.
+            # One run, one target. To reach Alma's sandbox or live API by the configured mode instead,
+            # start with the variable empty: `ALMA_API_URL= docker compose up -d`.
+            ALMA_API_URL: ${ALMA_API_URL-http://alma-mock:8000}
             PHP_DATE_TIMEZONE: ${PHP_DATE_TIMEZONE:-UTC}
             XDEBUG_MODE: debug
             XDEBUG_CONFIG: >-
