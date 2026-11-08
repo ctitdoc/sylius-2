@@ -6,36 +6,6 @@ parameters:
 			path: src/Checkout/FeePlanGrouper.php
 
 		-
-			message: "#^Parameter \\#2 \\$params of method Alma\\\\Sylius\\\\Payment\\\\AlmaIpnSignatureVerifier\\:\\:verify\\(\\) expects array\\<string, string\\>, array\\<string, mixed\\> given\\.$#"
-			count: 1
-			path: src/Controller/Payment/PaymentIpnController.php
-
-		-
-			message: "#^Cannot call method getDeferredDays\\(\\) on mixed\\.$#"
-			count: 1
-			path: src/Eligibility/EligibilityFetcher.php
-
-		-
-			message: "#^Cannot call method getDeferredMonths\\(\\) on mixed\\.$#"
-			count: 1
-			path: src/Eligibility/EligibilityFetcher.php
-
-		-
-			message: "#^Cannot call method getInstallmentsCount\\(\\) on mixed\\.$#"
-			count: 1
-			path: src/Eligibility/EligibilityFetcher.php
-
-		-
-			message: "#^Cannot call method getKind\\(\\) on mixed\\.$#"
-			count: 1
-			path: src/Eligibility/EligibilityFetcher.php
-
-		-
-			message: "#^Parameter \\#3 \\$remote of class Alma\\\\Sylius\\\\Eligibility\\\\AlmaEligibility constructor expects Alma\\\\Client\\\\Domain\\\\Entity\\\\Eligibility, mixed given\\.$#"
-			count: 1
-			path: src/Eligibility/EligibilityFetcher.php
-
-		-
 			message: "#^Call to an undefined method Symfony\\\\Component\\\\HttpFoundation\\\\Session\\\\SessionInterface\\:\\:getFlashBag\\(\\)\\.$#"
 			count: 1
 			path: src/Form/Type/AlmaGatewayConfigurationType.php

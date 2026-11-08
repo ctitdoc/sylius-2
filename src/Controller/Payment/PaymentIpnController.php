@@ -50,6 +50,9 @@ use Symfony\Component\Routing\Annotation\Route;
     name: 'alma_sylius_payment_ipn',
     methods: ['GET'],
 )]
+/**
+ * @implementation [[payment-notification]] — Alma's server-to-server notification: signed, then read back, checked and completed
+ */
 final class PaymentIpnController
 {
     private const SIGNATURE_HEADER = 'X-Alma-Signature';
@@ -75,8 +78,13 @@ final class PaymentIpnController
             return new Response('', Response::HTTP_UNAUTHORIZED);
         }
 
-        $params = $request->query->all();
-        unset($params[self::SIGNATURE_QUERY_PARAM]);
+        $params = [];
+        foreach ($request->query->all() as $name => $value) {
+            // Alma signs scalar query parameters; anything else is not part of the signature.
+            if (self::SIGNATURE_QUERY_PARAM !== $name && \is_scalar($value)) {
+                $params[$name] = (string) $value;
+            }
+        }
 
         if (!$this->signatureVerifier->verify($signature, $params)) {
             $this->logger->warning('alma.ipn.signature_invalid');
