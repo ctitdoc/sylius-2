@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Tests\Alma\Sylius\Unit\Checkout;
 
 use Alma\Client\Domain\Entity\Eligibility;
+use Alma\Client\Domain\Entity\Installment;
 use Alma\Sylius\Api\FeePlanAdapter;
 use Alma\Sylius\Checkout\FeePlanGrouper;
 use Alma\Sylius\Checkout\PlanGroup;
@@ -14,7 +15,7 @@ use PHPUnit\Framework\TestCase;
 /**
  * Characterisation of the plan choice at checkout ([[payment-plan-choice]], [[instalment-schedule]]):
  * the eligible plans are grouped — pay now, instalments, deferred, credit — each with its button label
- * and its schedule rows; the ineligible ones are left out.
+ * and its schedule rows, each row the amount Alma announces; the ineligible ones are left out.
  *
  * @implementation [[payment-plan-choice]]
  */
@@ -25,7 +26,7 @@ final class FeePlanGrouperTest extends TestCase
     public function testEligiblePlansAreGroupedAndIneligibleOnesLeftOut(): void
     {
         $views = (new FeePlanGrouper(new \DateTimeImmutable(self::TODAY)))->group([
-            'general_3_0_0' => $this->eligibility(3, 0, 0, eligible: true, plan: [['due_date' => $this->ts(self::TODAY), 'total_amount' => 2286], ['due_date' => $this->ts('2026-12-06'), 'total_amount' => 2285], ['due_date' => $this->ts('2027-01-06'), 'total_amount' => 2285]]),
+            'general_3_0_0' => $this->eligibility(3, 0, 0, eligible: true, plan: [['due_date' => $this->ts(self::TODAY), 'purchase_amount' => 2286], ['due_date' => $this->ts('2026-12-06'), 'purchase_amount' => 2285], ['due_date' => $this->ts('2027-01-06'), 'purchase_amount' => 2285]]),
             'general_1_15_0' => $this->eligibility(1, 15, 0, eligible: true, plan: [['due_date' => $this->ts('2026-11-21'), 'purchase_amount' => 6856, 'customer_fee' => 0]]),
             'general_10_0_0' => $this->eligibility(10, 0, 0, eligible: true, plan: []),
             'general_4_0_0' => $this->eligibility(4, 0, 0, eligible: false, plan: []),
@@ -45,7 +46,7 @@ final class FeePlanGrouperTest extends TestCase
         $deferred = $views[1]->plans[0];
         self::assertSame('alma_sylius.checkout.button.deferred_days', $deferred->buttonLabelKey);
         self::assertSame(['%count%' => 15], $deferred->buttonLabelParams);
-        self::assertSame(6856, $deferred->total, 'without total_amount, purchase amount plus fees');
+        self::assertSame(6856, $deferred->total, 'purchase amount plus fees');
     }
 
     public function testButtonLabelsNameInstalmentsAndDeferrals(): void
@@ -59,7 +60,7 @@ final class FeePlanGrouperTest extends TestCase
         self::assertSame(['alma_sylius.checkout.button.installments', ['%count%' => 1]], [$label(1, 0, 0)->buttonLabelKey, $label(1, 0, 0)->buttonLabelParams]);
     }
 
-    /** @param list<array<string, mixed>> $plan */
+    /** @param list<array<string, int>> $plan rows as the sandbox gives them: due_date, purchase_amount (customer_fee, customer_interest, total_amount optional) */
     private function eligibility(int $installments, int $days, int $months, bool $eligible, array $plan): AlmaEligibility
     {
         $data = ['eligible' => $eligible, 'installments_count' => $installments, 'deferred_days' => $days, 'deferred_months' => $months];
@@ -67,8 +68,9 @@ final class FeePlanGrouperTest extends TestCase
             ? ['customer_fee' => 0, 'customer_total_cost_amount' => 0, 'customer_total_cost_bps' => 0, 'payment_plan' => $plan, 'annual_interest_rate' => 0]
             : ['constraints' => [], 'reasons' => ['purchase_amount' => 'too_low']];
         $key = sprintf('general_%d_%d_%d', $installments, $days, $months);
+        $typed = array_map(static fn (array $row): Installment => new Installment($row + ['customer_fee' => 0, 'customer_interest' => 0, 'state' => Installment::STATE_FORECAST]), $plan);
 
-        return new AlmaEligibility($key, new FeePlanAdapter(['installments_count' => $installments, 'deferred_days' => $days, 'deferred_months' => $months]), new Eligibility($data));
+        return new AlmaEligibility($key, new FeePlanAdapter(['installments_count' => $installments, 'deferred_days' => $days, 'deferred_months' => $months]), new Eligibility($data), $typed);
     }
 
     private function ts(string $day): int

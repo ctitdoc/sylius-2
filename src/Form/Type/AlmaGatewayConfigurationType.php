@@ -7,6 +7,7 @@ namespace Alma\Sylius\Form\Type;
 use Alma\Sylius\Api\ApiKeyValidationError;
 use Alma\Sylius\Api\ApiKeyValidationResult;
 use Alma\Sylius\Api\ApiKeyValidator;
+use Alma\Sylius\Api\FeePlanAdapter;
 use Alma\Sylius\Api\FeePlansFetcher;
 use Alma\Sylius\Api\FeePlansFetchFailedException;
 use Alma\Sylius\Checkout\GroupDisplayTextsResolver;
@@ -25,6 +26,7 @@ use Symfony\Component\Form\FormEvents;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormView;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\HttpFoundation\Session\FlashBagAwareSessionInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
@@ -58,6 +60,11 @@ use Symfony\Contracts\Translation\TranslatorInterface;
  *
  * Encryption is handled by {@see \Alma\Sylius\EventListener\AlmaGatewayConfigCryptoListener}
  * at the Doctrine layer — the form sees and writes cleartext keys.
+ *
+ * @phpstan-import-type StoredPlan from FeePlanAdapter
+ * @phpstan-import-type PlanOverride from FeePlanAdapter
+ *
+ * @implementation [[merchant-configuration-form]] — the Merchant's configuration of Alma in the Back-Office: keys verified against Alma, plans and overrides, display texts
  */
 final class AlmaGatewayConfigurationType extends AbstractType
 {
@@ -125,7 +132,7 @@ final class AlmaGatewayConfigurationType extends AbstractType
                 $this->addFeePlanOverrideFields(
                     $event->getForm(),
                     $latestFeePlans,
-                    $config['fee_plan_overrides'] ?? [],
+                    $this->overrides($config['fee_plan_overrides'] ?? null),
                 );
 
                 $this->addDisplayTextFields(
@@ -223,11 +230,12 @@ final class AlmaGatewayConfigurationType extends AbstractType
                     $validation['test'] ?? null,
                 );
 
-                $data['fee_plans'] = $latestFeePlans !== []
+                $feePlans = $latestFeePlans !== []
                     ? $latestFeePlans
-                    : ($previousConfig['fee_plans'] ?? []);
+                    : $this->storedPlans($previousConfig['fee_plans'] ?? null);
+                $data['fee_plans'] = $feePlans;
 
-                [$overrides, $warnings] = $this->collectOverrides($event->getForm(), $data['fee_plans'] ?? []);
+                [$overrides, $warnings] = $this->collectOverrides($event->getForm(), $feePlans);
 
                 if (
                     $data['merchant_id'] !== null &&
@@ -259,7 +267,7 @@ final class AlmaGatewayConfigurationType extends AbstractType
             function (FormEvent $event) use (&$deferredErrors, &$deferredFlash): void {
                 $form = $event->getForm();
 
-                foreach ($deferredErrors['fields'] ?? [] as $field => $message) {
+                foreach ($deferredErrors['fields'] as $field => $message) {
                     if ($form->has($field)) {
                         $form->get($field)->addError(new FormError($this->translator->trans($message)));
                     }
@@ -271,8 +279,10 @@ final class AlmaGatewayConfigurationType extends AbstractType
 
                 if ($deferredFlash !== []) {
                     $session = $this->requestStack->getSession();
-                    foreach ($deferredFlash as $flash) {
-                        $session->getFlashBag()->add('warning', $flash);
+                    if ($session instanceof FlashBagAwareSessionInterface) {
+                        foreach ($deferredFlash as $flash) {
+                            $session->getFlashBag()->add('warning', $flash);
+                        }
                     }
                 }
             },
@@ -310,6 +320,52 @@ final class AlmaGatewayConfigurationType extends AbstractType
         return \is_string($value) && $value !== '' ? $value : null;
     }
 
+    /** A field's data as trimmed text; anything not scalar is empty. */
+    private function text(mixed $value): string
+    {
+        return \is_scalar($value) ? trim((string) $value) : '';
+    }
+
+    /**
+     * The Merchant's overrides as stored, plan key → data: written by this form (collectOverrides), read back here.
+     *
+     * @return array<string, PlanOverride>
+     */
+    private function overrides(mixed $value): array
+    {
+        if (!\is_array($value)) {
+            return [];
+        }
+        $overrides = [];
+        foreach ($value as $key => $data) {
+            if (!\is_string($key) || !\is_array($data)) {
+                continue;
+            }
+            foreach ($data as $field => $item) {
+                if (\is_string($field)) {
+                    $overrides[$key][$field] = $item;
+                }
+            }
+        }
+        /** @var array<string, PlanOverride> $stored written by collectOverrides */
+        $stored = $overrides;
+
+        return $stored;
+    }
+
+    /**
+     * The plans as stored, plan key → Alma's data: written by FeePlansFetcher from the client's typed getters.
+     *
+     * @return array<string, StoredPlan>
+     */
+    private function storedPlans(mixed $value): array
+    {
+        /** @var array<string, StoredPlan> $plans */
+        $plans = \is_array($value) ? $value : [];
+
+        return $plans;
+    }
+
     /**
      * @param array<string, mixed> $previousConfig
      */
@@ -322,12 +378,12 @@ final class AlmaGatewayConfigurationType extends AbstractType
     /**
      * @param array<string, mixed> $config
      *
-     * @return array<string, array<string, mixed>>
+     * @return array<string, StoredPlan>
      */
     private function refreshFeePlans(array $config): array
     {
-        $mode = \in_array($config['api_mode'] ?? null, AlmaConfiguration::MODES, true)
-            ? (string) $config['api_mode']
+        $mode = \is_string($config['api_mode'] ?? null) && \in_array($config['api_mode'], AlmaConfiguration::MODES, true)
+            ? $config['api_mode']
             : AlmaConfiguration::MODE_TEST;
         $key = $mode === AlmaConfiguration::MODE_LIVE
             ? $this->nonEmptyString($config['api_key_live'] ?? null)
@@ -340,28 +396,25 @@ final class AlmaGatewayConfigurationType extends AbstractType
         try {
             return $this->feePlansFetcher->fetch($key, $mode);
         } catch (FeePlansFetchFailedException) {
-            /** @var array<string, array<string, mixed>> $persisted */
-            $persisted = \is_array($config['fee_plans'] ?? null) ? $config['fee_plans'] : [];
-
-            return $persisted;
+            return $this->storedPlans($config['fee_plans'] ?? null);
         }
     }
 
     /**
-     * @param array<string, array<string, mixed>> $feePlans
-     * @param array<string, array<string, mixed>> $overrides
+     * @param array<string, StoredPlan> $feePlans
+     * @param array<string, PlanOverride> $overrides
      */
     private function addFeePlanOverrideFields(FormInterface $form, array $feePlans, array $overrides): void
     {
         foreach ($feePlans as $planKey => $apiPlan) {
             $override = $overrides[$planKey] ?? [];
-            $apiMin = (int) ($apiPlan['min_purchase_amount'] ?? 0);
-            $apiMax = (int) ($apiPlan['max_purchase_amount'] ?? 0);
+            $apiMin = $apiPlan['min_purchase_amount'] ?? 0;
+            $apiMax = $apiPlan['max_purchase_amount'] ?? 0;
 
             $form->add('fee_plan_enabled__' . $planKey, CheckboxType::class, [
                 'mapped' => false,
                 'required' => false,
-                'data' => (bool) ($override['enabled'] ?? false),
+                'data' => $override['enabled'] ?? false,
                 'label' => false,
             ]);
             $form->add('fee_plan_override_min__' . $planKey, IntegerType::class, [
@@ -432,10 +485,10 @@ final class AlmaGatewayConfigurationType extends AbstractType
                     continue;
                 }
 
-                $description = trim((string) $form->get(sprintf('display_description__%s__%s', $group->value, $locale))->getData());
+                $description = $this->text($form->get(sprintf('display_description__%s__%s', $group->value, $locale))->getData());
 
                 $texts[$locale][$group->value] = [
-                    'title' => trim((string) $form->get($titleField)->getData()),
+                    'title' => $this->text($form->get($titleField)->getData()),
                     'description' => $description === '' ? null : $description,
                 ];
             }
@@ -484,9 +537,9 @@ final class AlmaGatewayConfigurationType extends AbstractType
     }
 
     /**
-     * @param array<string, array<string, mixed>> $feePlans
+     * @param array<string, StoredPlan> $feePlans
      *
-     * @return array{0: array<string, array<string, mixed>>, 1: list<string>}
+     * @return array{0: array<string, PlanOverride>, 1: list<string>}
      */
     private function collectOverrides(FormInterface $form, array $feePlans): array
     {
@@ -502,8 +555,8 @@ final class AlmaGatewayConfigurationType extends AbstractType
                 continue;
             }
 
-            $apiMin = (int) ($apiPlan['min_purchase_amount'] ?? 0);
-            $apiMax = (int) ($apiPlan['max_purchase_amount'] ?? 0);
+            $apiMin = $apiPlan['min_purchase_amount'] ?? 0;
+            $apiMax = $apiPlan['max_purchase_amount'] ?? 0;
 
             $enabled = (bool) $form->get($enabledField)->getData();
             [$minClamped, $minWarning] = $this->clampOverride($form->get($minField)->getData(), $apiMin, $apiMax, $planKey);
@@ -535,7 +588,7 @@ final class AlmaGatewayConfigurationType extends AbstractType
      */
     private function clampOverride(mixed $value, int $apiMin, int $apiMax, string $planKey): array
     {
-        if ($value === null || $value === '') {
+        if (!\is_scalar($value) || $value === '') {
             return [null, null];
         }
 
