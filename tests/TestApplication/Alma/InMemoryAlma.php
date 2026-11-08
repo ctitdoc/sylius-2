@@ -132,6 +132,8 @@ final class InMemoryAlma
         }
         $id = 'payment_' . substr(bin2hex(random_bytes(10)), 0, 20);
         [$schedule, $customerFee] = $this->schedule($amount, $plan);
+        // A payment's instalments carry a state; an eligibility's rows, a forecast, carry none (API reference).
+        $schedule = array_map(static fn (array $row): array => $row + ['state' => 'pending'], $schedule);
         $payment = [
             'id' => $id, 'state' => 'in_progress', 'processing_status' => 'awaiting_authorization',
             'url' => self::HOSTED_PAGE . $id, 'purchase_amount' => $amount, 'installments_count' => $n,
@@ -269,7 +271,9 @@ final class InMemoryAlma
      *
      * @param array{installments_count: int, deferred_days: int, deferred_months: int, allowed: bool, min: int, max: int, cfee: int, mfee: int} $plan
      *
-     * @return array{0: list<array<string, int|string>>, 1: int}
+     * The forecast schedule as the eligibility endpoint sends it: amounts, dates, no state.
+     *
+     * @return array{0: list<array<string, int>>, 1: int}
      */
     private function schedule(int $amount, array $plan): array
     {
@@ -284,7 +288,7 @@ final class InMemoryAlma
             $fee = 0 === $i ? $customerFee : 0;
             $rows[] = [
                 'due_date' => $firstDue + $i * 30 * 86400, 'purchase_amount' => $part, 'customer_fee' => $fee,
-                'customer_interest' => 0, 'total_amount' => $part + $fee, 'state' => 'pending',
+                'customer_interest' => 0, 'total_amount' => $part + $fee,
             ];
         }
 
