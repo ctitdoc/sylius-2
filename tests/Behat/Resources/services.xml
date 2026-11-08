@@ -1,7 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Behat contexts of the plugin (cycle 2, second pull request). -->
+<!-- Behat contexts of the plugin: the Merchant's configuration of Alma, the Buyer paying with Alma, the Alma mock. -->
 <container xmlns="http://symfony.com/schema/dic/services"
            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
            xsi:schemaLocation="http://symfony.com/schema/dic/services https://symfony.com/schema/dic/services/services-1.0.xsd">
-    <services/>
+    <services>
+        <defaults public="true"/>
+
+        <service id="Tests\Alma\Sylius\Behat\Context\Hook\AlmaMockContext"/>
+
+        <service id="Tests\Alma\Sylius\Behat\Context\Setup\AlmaConfigurationContext">
+            <argument type="service" id="sylius.behat.shared_storage"/>
+            <argument type="service" id="sylius.factory.payment_method"/>
+            <argument type="service" id="sylius.factory.gateway_config"/>
+            <argument type="service" id="sylius.repository.payment_method"/>
+            <argument type="service" id="Alma\Sylius\Api\ApiKeyValidator"/>
+            <argument type="service" id="Alma\Sylius\Api\FeePlansFetcher"/>
+        </service>
+
+        <service id="Tests\Alma\Sylius\Behat\Context\Ui\Admin\ConfiguringAlmaContext">
+            <argument type="service" id="sylius.behat.page.admin.payment_method.create"/>
+            <argument type="service" id="sylius.repository.payment_method"/>
+        </service>
+
+        <service id="Tests\Alma\Sylius\Behat\Context\Ui\Shop\PayingWithAlmaContext">
+            <argument type="service" id="sylius.behat.page.shop.checkout.complete"/>
+            <argument type="service" id="sylius.behat.shared_storage"/>
+            <argument type="service" id="Alma\Sylius\Repository\AlmaPaymentReferenceRepository"/>
+        </service>
+    </services>
 </container>
