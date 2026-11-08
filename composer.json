@@ -11,7 +11,7 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
-        "alma/alma-php-client": "^3.0",
+        "alma/alma-php-client": "dev-feat/eligibility-installments as 3.1.0",
         "sylius/sylius": "^2.0"
     },
     "require-dev": {
@@ -83,5 +83,11 @@
         ]
     },
     "minimum-stability": "alpha",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/ctitdoc/alma-php-client"
+        }
+    ]
 }

@@ -60,8 +60,8 @@ final class FeePlanGrouper
         $rows = [];
         $total = 0;
         foreach ($eligibility->getInstallments() as $installment) {
-            // What Alma announces for the instalment, checked by the fetcher against share plus fees plus interest.
-            $amount = $installment->amount;
+            // Alma's total_amount for the instalment, checked by the fetcher against share plus fees plus interest.
+            $amount = $installment->getTotalAmount();
             $dueDate = $installment->getDueDate();
             $isToday = (new \DateTimeImmutable('@' . $dueDate))->setTimezone($timezone)->format('Y-m-d') === $todayDate;
             $rows[] = ['isToday' => $isToday, 'dueDate' => $dueDate, 'amount' => $amount];

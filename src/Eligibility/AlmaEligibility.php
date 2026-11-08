@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Alma\Sylius\Eligibility;
 
 use Alma\Client\Domain\Entity\Eligibility as AlmaResponseEligibility;
+use Alma\Client\Domain\Entity\Installment;
 use Alma\Sylius\Api\FeePlanAdapter;
 
 /**
@@ -24,7 +25,7 @@ use Alma\Sylius\Api\FeePlanAdapter;
 class AlmaEligibility
 {
     /**
-     * @param list<ForecastInstalment> $installments the forecast schedule (EligibilityFetcher builds it)
+     * @param list<Installment> $installments the forecast schedule, typed by the client (EligibilityFetcher reads it)
      */
     public function __construct(
         private readonly string $planKey,
@@ -90,10 +91,10 @@ class AlmaEligibility
     }
 
     /**
-     * The forecast schedule ([[instalment-schedule]]): one instalment per row of Alma's answer, every
-     * one `pending` since nothing is paid yet, typed by the client's entity rather than read raw.
+     * The forecast schedule ([[instalment-schedule]]): one Installment of the client per row of Alma's
+     * answer, in the state `forecast` — nothing is paid, nothing is due yet.
      *
-     * @return list<ForecastInstalment>
+     * @return list<Installment>
      */
     public function getInstallments(): array
     {
