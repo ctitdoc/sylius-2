@@ -120,7 +120,8 @@ jobs:
                 uses: actions/upload-artifact@v4
                 if: failure()
                 with:
-                    name: "Behat logs - Sylius ${{ matrix.sylius }} - ${{ matrix.database }} - ${{ github.run_id }}"
+                    # upload-artifact v4 refuses a colon in a name: the database image (mysql:8.4) is replaced by the job index
+                    name: "Behat logs - Sylius ${{ matrix.sylius }} - job ${{ strategy.job-index }} - ${{ github.run_id }}"
                     path: etc/build/
                     if-no-files-found: ignore
                     compression-level: 6
