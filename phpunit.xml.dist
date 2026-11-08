@@ -12,7 +12,8 @@
         <server name="KERNEL_CLASS" value="Sylius\TestApplication\Kernel" />
         <server name="IS_DOCTRINE_ORM_SUPPORTED" value="true"/>
         <env name="APP_SECRET" value="''" />
-        <env name="APP_ENV" value="test"/>
+        <server name="APP_ENV" value="test" force="true"/>
+        <env name="APP_ENV" value="test" force="true"/>
     </php>
     <testsuites>
         <testsuite name="all">
