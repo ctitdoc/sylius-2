@@ -20,3 +20,9 @@ services:
     mailhog:
         # do not use in production!
         image: mailhog/mailhog:latest
+    alma-mock:
+        # Alma's backend, simulated: the API the plugin calls and the hosted payment page. Test double
+        # only; the php service is pointed at it by ALMA_API_URL (see the compose override).
+        build: tests/MockAlma
+        environment:
+            PUBLIC_URL: http://alma-mock:8000

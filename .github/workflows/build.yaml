@@ -64,6 +64,7 @@ jobs:
 
         env:
             APP_ENV: test
+            ALMA_API_URL: http://127.0.0.1:8000
 
         steps:
             -
@@ -93,6 +94,15 @@ jobs:
             -
                 name: Validate container
                 run: vendor/bin/console lint:container
+
+            -
+                # Alma's backend, doubled by the mock server of tests/MockAlma, reached through ALMA_API_URL
+                name: Start the Alma mock
+                run: |
+                    python3 -m pip install --quiet -r tests/MockAlma/requirements.txt
+                    (cd tests/MockAlma && PUBLIC_URL=http://127.0.0.1:8000 nohup python3 -m uvicorn app:app --host 127.0.0.1 --port 8000 > /tmp/alma-mock.log 2>&1 &)
+                    for i in $(seq 1 30); do curl -sf http://127.0.0.1:8000/ > /dev/null && break; sleep 1; done
+                    curl -sf http://127.0.0.1:8000/ > /dev/null || (cat /tmp/alma-mock.log; exit 1)
 
             -
                 name: Run Non-unit PHPUnit tests
